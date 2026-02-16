@@ -1,11 +1,24 @@
-<div align="center">
 
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
+# communicator-hub-prod
 
-  <h1>Built with AI Studio</h2>
+## 🚀 概要
+本プロジェクトは、新リポジトリ「Ktak-Gti/communicator-hub-prod」にて管理される、Gemini 3 シリーズを搭載した次世代型研修プラットフォームです。
 
-  <p>The fastest path from prompt to production with Gemini.</p>
+## 🛠 プロジェクト構成
+- **Frontend:** React 19 / Tailwind CSS
+- **AI Core:** Gemini 3 Pro/Flash
+- **Backend:** Google Apps Script (V6.22.20+)
 
-  <a href="https://aistudio.google.com/apps">Start building</a>
+## 📦 同期ステータス
+- **Build Tag:** V8.0.0-PROD
+- **Target Repository:** Ktak-Gti/communicator-hub-prod
 
-</div>
+# UI Freeze Rule
+The UI layer is frozen.
+Do NOT:
+- Change layout structure
+- Rename CSS classes
+- Modify DOM hierarchy
+
+Allowed:
+- Internal logic changes only

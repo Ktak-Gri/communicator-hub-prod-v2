@@ -1,0 +1,14 @@
+
+{
+  "name": "communicator-hub-prod",
+  "private": true,
+  "version": "8.0.2",
+  "type": "module",
+  "description": "コミュニケーター育成HUB - 本番環境用ビルド",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Ktak-Gti/communicator-hub-prod.git"
+  },
+  "dependencies": {},
+  "devDependencies": {}
+}

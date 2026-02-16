@@ -1,0 +1,35 @@
+# 1. 依存関係（最優先で無視）
+node_modules/
+.pnpm-store/
+.npm/
+
+# 2. 旧モノレポ構成の残骸
+apps/
+packages/
+pnpm-workspace.yaml
+turbo.json
+
+# 3. ビルド生成物
+dist/
+build/
+out/
+.next/
+
+# 4. OS/IDE固有（Windows/Mac）
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/*
+!.vscode/settings.json
+.idea/
+
+# 5. 環境変数（セキュリティ）
+.env
+.env.*
+
+# 6. ログとキャッシュ
+*.log
+.cache/
+.eslintcache
+.tmp/
+.temp/
