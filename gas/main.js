@@ -1,32 +1,57 @@
 /**
- * =================================================================
  * コミュニケーター育成HUB - Backend (Google Apps Script)
- * =================================================================
- * VERSION: V6.22.20 (STABLE_SYNC)
+ * VERSION: V6.40.54 (CRITICAL_DELETE_FIX)
  */
 
-var VERSION_STRING = "V6.22.20";
-// 最新のスプレッドシートIDに更新
+var VERSION_STRING = "V6.40.54";
 var DEFAULT_SS_ID = '1DkyoKVZ6_iEY2WCQp_eLx3F_har_bCwkkkV-N1wdh6M';
 
-function normalizeKey(str) {
-  if (!str) return "";
-  return String(str).replace(/[\s　]\n\r/g, "").trim();
+/**
+ * 究極のID正規化関数
+ * 全角・半角・数値サフィックス(.0)・空白・大文字小文字の差異を完全に吸収します。
+ */
+function normalizeId(val) {
+  if (val === null || val === undefined) return "";
+  var s = String(val).trim();
+  
+  // Google Sheetsの数値型セルが ".0" を伴う文字列として読み込まれる現象への対策
+  if (s.indexOf('.') !== -1 && !isNaN(val)) {
+    s = s.replace(/\.0+$/, "");
+  }
+  
+  // 全角英数字を半角に強制変換
+  s = s.replace(/[０-９Ａ-Ｚａ-ｚ]/g, function(m) { 
+    return String.fromCharCode(m.charCodeAt(0) - 0xFEE0); 
+  });
+  
+  // 空白(全角含む)を除去し、小文字に統一
+  return s.replace(/[\s　\t\n\r]/g, "").toLowerCase();
+}
+
+function findSheet(ss, name) {
+  var sheets = ss.getSheets();
+  var target = name.replace(/[\s　]/g, "");
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].getName().replace(/[\s　]/g, "") === target) return sheets[i];
+  }
+  return null;
 }
 
 function doGet(e) {
-  var p = e.parameter.p;
-  var callback = e.parameter.callback;
+  var callback = e.parameter.callback || "callback";
   var result;
   try {
-    if (!p) throw new Error("パラメータ 'p' がありません。");
-    // GASの仕様で '+' が半角スペースに変換される場合があるための対策
+    var p = e.parameter.p;
+    if (!p) throw new Error("No Payload");
     var safeP = p.replace(/ /g, "+");
-    var decoded = Utilities.newBlob(Utilities.base64Decode(safeP)).getDataAsString();
+    var decoded = Utilities.newBlob(Utilities.base64Decode(safeP)).getDataAsString("UTF-8");
     var payload = JSON.parse(decoded);
+    
     result = processAction(payload.a, payload.d || {}, payload.t || null);
+    result.status = result.status || 'success';
+    result.version = VERSION_STRING;
   } catch (err) {
-    result = { status: 'error', error: "SERVER_EXEC_ERROR [" + VERSION_STRING + "]: " + err.message };
+    result = { status: 'error', error: err.message, version: VERSION_STRING };
   }
   var output = callback + "(" + JSON.stringify(result) + ")";
   return ContentService.createTextOutput(output).setMimeType(ContentService.MimeType.JAVASCRIPT);
@@ -35,174 +60,114 @@ function doGet(e) {
 function processAction(action, data, token) {
   var props = PropertiesService.getScriptProperties();
   var ssId = props.getProperty('SPREADSHEET_ID') || DEFAULT_SS_ID;
-  var ss;
+  var ss = SpreadsheetApp.openById(ssId);
 
-  try {
-    ss = SpreadsheetApp.openById(ssId);
-  } catch(e) {
-    return { status: 'error', error: "SPREADSHEET_ACCESS_DENIED: ID(" + ssId + ")にアクセスできません。権限設定を確認してください。" };
-  }
-
-  var adminActions = ['addScenario', 'updateScenario', 'deleteScenario', 'addTestQuestion', 'updateTestQuestion', 'deleteTestQuestion', 'getAdminRolePlayLogs', 'getAdminTestLogs', 'getAdminQuestioningLogs', 'getAdminAllScenarios', 'getAdminAllTestQuestions', 'updateSheet'];
-  if (adminActions.indexOf(action) !== -1) {
-    if (!token || token.indexOf('TOKEN_') !== 0) return { status: 'error', error: "ADMIN_SESSION_EXPIRED" };
+  // 権限チェック (削除系は必須)
+  var restricted = ['updateSheet', 'deleteScenario', 'deleteTestQuestion'];
+  if (restricted.indexOf(action) !== -1) {
+    if (!token || token.indexOf('TOKEN_') !== 0) throw new Error("管理者権限が必要です。再ログインしてください。");
   }
 
   switch (action) {
     case 'getSettings':
-      return { 
-        status: 'success', version: VERSION_STRING,
+      return {
         data: {
-          scenarios: getSheetData(ss, 'シナリオ'),
-          ngWords: getSheetData(ss, 'NGワード').map(function(r){ return r.NGワード; }),
-          faqTopics: getSheetData(ss, 'テストトピック').map(function(r){ return r.トピック; }),
-          testQuestions: getSheetData(ss, 'テスト問題'),
-          masterSettings: getSheetData(ss, 'センターマスタ'),
-          personalities: getSheetData(ss, '性質マスタ'),
-          ageGroups: getSheetData(ss, '年代マスタ'),
-          trainees: getSheetData(ss, '研修生マスタ'),
-          apiKey: props.getProperty('API_KEY')
+          scenarios: readSheetData(ss, 'シナリオ'),
+          testQuestions: readSheetData(ss, 'テスト問題'),
+          masterSettings: readSheetData(ss, 'センターマスタ'),
+          trainees: readSheetData(ss, '研修生マスタ'),
+          ngWords: readSheetData(ss, 'NGワード').map(function(r){ return r.NGワード || r[0]; }),
+          faqTopics: readSheetData(ss, 'テストトピック').map(function(r){ return r.トピック || r[0]; }),
+          personalities: readSheetData(ss, '性質マスタ')
         }
       };
 
     case 'validateTrainee':
-      var trainees = getSheetData(ss, '研修生マスタ');
-      var inputName = normalizeKey(data.name);
-      var found = trainees.filter(function(t) { 
-        var target = t.研修生名 || t.traineeName || t.研修生 || t.trainee || "";
-        return normalizeKey(target) === inputName; 
+      var traineeList = readSheetData(ss, '研修生マスタ');
+      var nameToFind = normalizeId(data.name);
+      var found = traineeList.filter(function(t) {
+        return normalizeId(t.研修生名 || t.traineeName || "") === nameToFind;
       })[0];
-      return { status: 'success', data: found || null };
+      return { data: found || null };
 
     case 'adminLogin':
-      var inputPass = String(data.password || "").trim();
-      var scriptPass = props.getProperty('ADMIN_PASSWORD') || "admin123";
-      if (inputPass === scriptPass) {
-        return { status: 'success', data: { token: 'TOKEN_' + Utilities.getUuid() } };
+      var adminPw = props.getProperty('ADMIN_PASSWORD') || "admin123";
+      if (String(data.password).trim() === adminPw) {
+        return { data: { token: 'TOKEN_' + Utilities.getUuid() } };
       }
-      return { status: 'error', error: "認証失敗" };
+      throw new Error("パスワードが正しくありません。");
 
-    case 'saveRolePlayLog':
-      saveToSheet(ss, 'ロールプレイングログ', data);
-      return { status: 'success' };
-    
-    case 'saveTestLog':
-      saveToSheet(ss, 'テストログ', data);
-      return { status: 'success' };
-    
-    case 'saveQuestioningLog':
-      saveToSheet(ss, '質問力ログ', data);
-      return { status: 'success' };
-
-    case 'getUserHistoryRolePlay':
-      var rpLogs = getSheetData(ss, 'ロールプレイングログ').filter(function(r) {
-        return (r.traineeName === data.traineeName || r.研修生名 === data.traineeName);
-      });
-      return { status: 'success', data: { rows: rpLogs } };
-
-    case 'getUserHistoryTest':
-      var testLogs = getSheetData(ss, 'テストログ').filter(function(r) {
-        return (r.traineeName === data.traineeName || r.研修生名 === data.traineeName);
-      });
-      return { status: 'success', data: { rows: testLogs } };
-
-    case 'getUserHistoryQuestioning':
-      var qLogs = getSheetData(ss, '質問力ログ').filter(function(r) {
-        return (r.traineeName === data.traineeName || r.研修生名 === data.traineeName);
-      });
-      return { status: 'success', data: { rows: qLogs } };
-
-    case 'initiateCall':
-      var sessionId = 'SESSION_' + Utilities.getUuid();
-      var session = {
-        sessionId: sessionId,
-        caller: data.caller,
-        receiver: data.receiver,
-        scenarioId: data.scenarioId,
-        status: 'calling',
-        transcript: [],
-        timestamp: new Date().getTime()
-      };
-      props.setProperty('CALL_' + data.caller, JSON.stringify(session));
-      props.setProperty('CALL_' + data.receiver, JSON.stringify(session));
-      return { status: 'success', data: session };
-
-    case 'pollCall':
-      var rawSession = props.getProperty('CALL_' + data.traineeName);
-      if (!rawSession) return { status: 'success', data: null };
-      var sessionObj = JSON.parse(rawSession);
-      if (new Date().getTime() - sessionObj.timestamp > 180000) {
-        props.deleteProperty('CALL_' + sessionObj.caller);
-        props.deleteProperty('CALL_' + sessionObj.receiver);
-        return { status: 'success', data: null };
-      }
-      return { status: 'success', data: sessionObj };
-
-    case 'syncTranscript':
-      var sessionKey = 'CALL_' + data.traineeName;
-      var raw = props.getProperty(sessionKey);
-      if (!raw) return { status: 'error', error: 'Session not found' };
-      var s = JSON.parse(raw);
-      if (data.transcript) s.transcript = data.transcript;
-      if (data.status) s.status = data.status;
-      s.timestamp = new Date().getTime();
-      var updatedStr = JSON.stringify(s);
-      props.setProperty('CALL_' + s.caller, updatedStr);
-      props.setProperty('CALL_' + s.receiver, updatedStr);
-      return { status: 'success', data: s };
-
-    case 'endCall':
-      var key = 'CALL_' + data.traineeName;
-      var currentRaw = props.getProperty(key);
-      if (currentRaw) {
-        var currentS = JSON.parse(currentRaw);
-        props.deleteProperty('CALL_' + currentS.caller);
-        props.deleteProperty('CALL_' + currentS.receiver);
-      }
-      return { status: 'success' };
-
-    case 'getAdminAllScenarios': return { status: 'success', data: { rows: getSheetData(ss, 'シナリオ') } };
-    case 'getAdminAllTestQuestions': return { status: 'success', data: { rows: getSheetData(ss, 'テスト問題') } };
-    case 'getAdminRolePlayLogs': return { status: 'success', data: { rows: getSheetData(ss, 'ロールプレイングログ') } };
     case 'updateSheet':
-      var sheet = ss.getSheetByName(data.sheet);
-      if (!sheet) return { status: 'error', error: "シート見つからず" };
-      sheet.clear();
-      sheet.getRange(1, 1, data.data.length, data.data[0].length).setValues(data.data);
+      var targetSheet = findSheet(ss, data.sheet);
+      if (!targetSheet) throw new Error("シート '" + data.sheet + "' が見つかりません。");
+      targetSheet.clear();
+      if (data.data && data.data.length > 0) {
+        targetSheet.getRange(1, 1, data.data.length, data.data[0].length).setValues(data.data);
+      }
       return { status: 'success' };
-    default: return { status: 'error', error: "UNKNOWN_ACTION: " + action };
+
+    case 'deleteScenario': return deleteRowById(ss, 'シナリオ', data.id);
+    case 'deleteTestQuestion': return deleteRowById(ss, 'テスト問題', data.id);
+    case 'saveRolePlayLog': appendToLog(ss, 'ロールプレイングログ', data); return { status: 'success' };
+    case 'saveTestLog': appendToLog(ss, 'テストログ', data); return { status: 'success' };
+
+    default:
+      throw new Error("不明なアクション: " + action);
   }
 }
 
-function getSheetData(ss, name) {
-  var sheet = ss.getSheetByName(name);
+function readSheetData(ss, name) {
+  var sheet = findSheet(ss, name);
   if (!sheet) return [];
-  var data = sheet.getDataRange().getValues();
-  if (data.length < 2) return [];
-  var headers = data[0].map(function(h) { return h.toString().trim(); });
-  var rows = [];
-  for (var i = 1; i < data.length; i++) {
+  var range = sheet.getDataRange();
+  var values = range.getValues();
+  if (values.length < 1) return [];
+  
+  var headers = values[0];
+  var results = [];
+  for (var i = 1; i < values.length; i++) {
     var obj = {};
     for (var j = 0; j < headers.length; j++) {
-      obj[headers[j]] = data[i][j];
+      obj[headers[headers.length > j ? j : 0]] = values[i][j];
     }
-    rows.push(obj);
+    // A列をIDとして必ずセット
+    obj.id = values[i][0];
+    results.push(obj);
   }
-  return rows;
+  return results;
 }
 
-function saveToSheet(ss, name, data) {
-  var sheet = ss.getSheetByName(name);
-  if (!sheet) {
-    sheet = ss.insertSheet(name);
-    var keys = Object.keys(data);
-    sheet.appendRow(keys);
+function deleteRowById(ss, sheetName, id) {
+  var sheet = findSheet(ss, sheetName);
+  if (!sheet) throw new Error("シート '" + sheetName + "' が見つかりません。");
+  
+  var range = sheet.getDataRange();
+  var values = range.getValues();
+  var tid = normalizeId(id);
+  
+  if (!tid) throw new Error("削除対象のIDが空です。");
+
+  // 1列目（ID列）を走査して完全一致を確認
+  for (var i = 1; i < values.length; i++) {
+    var cellValue = values[i][0];
+    if (normalizeId(cellValue) === tid) {
+      sheet.deleteRow(i + 1);
+      console.log("Deleted ID: " + tid + " from " + sheetName);
+      return { status: 'success' };
+    }
+  }
+  throw new Error("管理番号 '" + id + "' はシート '" + sheetName + "' 内に存在しません。");
+}
+
+function appendToLog(ss, sheetName, data) {
+  var sheet = findSheet(ss, sheetName) || ss.insertSheet(sheetName);
+  if (sheet.getLastColumn() === 0) {
+    sheet.appendRow(Object.keys(data));
   }
   var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
   var row = headers.map(function(h) {
     var val = data[h];
-    if (typeof val === 'object') return JSON.stringify(val);
-    return val || "";
+    return (typeof val === 'object') ? JSON.stringify(val) : val;
   });
   sheet.appendRow(row);
 }

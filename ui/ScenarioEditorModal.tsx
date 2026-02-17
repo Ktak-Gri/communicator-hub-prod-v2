@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { Scenario, MasterSetting, MasterDataItem } from '../types.ts';
 import { CloseIcon, LoadingIcon, TrashIcon } from './Icons.tsx';
@@ -6,7 +5,7 @@ import { CloseIcon, LoadingIcon, TrashIcon } from './Icons.tsx';
 interface ScenarioEditorModalProps {
   onClose: () => void;
   onSave: (scenario: Omit<Scenario, 'id'> & { id?: string }) => Promise<void>;
-  onDelete?: () => Promise<void>;
+  onDelete?: (e: React.MouseEvent | null, scenario: Scenario) => Promise<void>;
   scenario: Scenario | null;
   masterSettings: MasterSetting[];
   personalities: MasterDataItem[];
@@ -21,6 +20,9 @@ const ScenarioEditorModal: React.FC<ScenarioEditorModalProps> = ({ onClose, onSa
   const [smartphonePlan, setSmartphonePlan] = useState('');
   const [lightPlan, setLightPlan] = useState('');
   const [personality, setPersonality] = useState('');
+  
+  // モーダル内削除確認ステート
+  const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
 
   const currentSheetId = useMemo(() => String(scenario?.id || "").trim(), [scenario]);
 
@@ -49,6 +51,26 @@ const ScenarioEditorModal: React.FC<ScenarioEditorModalProps> = ({ onClose, onSa
     onSave({ ...scenario, name, initialInquiry, center, difficulty, smartphonePlan, lightPlan, personality } as any);
   };
 
+  const handleTriggerDelete = (e: React.MouseEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setIsConfirmingDelete(true);
+  };
+
+  const handleCancelDelete = (e: React.MouseEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setIsConfirmingDelete(false);
+  };
+
+  const handleFinalDelete = (e: React.MouseEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (onDelete && scenario) {
+          onDelete(e, scenario);
+      }
+  };
+
   return (
     <div className="fixed inset-0 bg-black/60 z-[200] flex items-center justify-center p-4 animate-fade-in" onClick={onClose}>
       <div className="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[92vh] pointer-events-auto" onClick={e => e.stopPropagation()}>
@@ -59,11 +81,12 @@ const ScenarioEditorModal: React.FC<ScenarioEditorModalProps> = ({ onClose, onSa
             </h3>
             <button type="button" onClick={onClose} className="p-2 text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"><CloseIcon className="h-6 w-6" /></button>
           </div>
+
           <div className="p-8 space-y-6 overflow-y-auto flex-1 custom-scrollbar">
             <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 flex items-center justify-between">
               <span className="text-xs font-black text-slate-400 uppercase tracking-widest px-2">管理ID</span>
               <span className="font-mono text-base font-black text-slate-600 bg-white px-4 py-1.5 rounded border border-slate-200">
-                {currentSheetId || <span className="text-slate-300 font-normal italic">AUTO-GEN</span>}
+                {currentSheetId || <span className="text-slate-300 font-normal italic">NEW</span>}
               </span>
             </div>
 
@@ -96,28 +119,54 @@ const ScenarioEditorModal: React.FC<ScenarioEditorModalProps> = ({ onClose, onSa
                 <label className="text-xs font-black text-slate-400 uppercase tracking-widest text-center block">AI顧客の難易度</label>
                 <div className="flex gap-8 p-3.5 bg-slate-50 rounded-2xl border border-slate-100 justify-center">
                     {[1, 2, 3, 4, 5].map(v => (
-                        <button key={v} type="button" onClick={() => setDifficulty(v)} className={`text-4xl transition-all transform active:scale-90 ${v <= difficulty ? 'text-amber-400' : 'text-slate-200'}`}>★</button>
+                        <button key={v} type="button" onClick={() => setDifficulty(v)} className={`text-4xl transition-all transform active:scale-90 cursor-pointer ${v <= difficulty ? 'text-amber-400' : 'text-slate-200'}`}>★</button>
                     ))}
                 </div>
             </div>
+
             <div className="space-y-2">
                 <label className="text-xs font-black text-slate-400 uppercase tracking-widest px-2">AI顧客への指示（問い合わせ内容）</label>
                 <textarea value={initialInquiry} onChange={e => setInitialInquiry(e.target.value)} className="w-full p-5 bg-slate-50 border-2 border-slate-100 rounded-2xl font-bold text-base focus:border-sky-500 outline-none shadow-inner" rows={4} required />
             </div>
           </div>
+
           <div className="p-6 bg-slate-50 border-t flex justify-between items-center px-10">
-            {onDelete && (scenario?.internalId || scenario?.id) ? (
-                <button 
-                  type="button" 
-                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); onDelete(); }} 
-                  className="text-rose-500 hover:text-rose-700 font-black text-sm uppercase flex items-center gap-2 transition-all cursor-pointer bg-transparent border-none p-2"
-                >
-                    <TrashIcon className="h-5 w-5" /> <span>削除する</span>
-                </button>
-            ) : <div />}
+            <div>
+              {onDelete && (scenario?.internalId || scenario?.id) ? (
+                !isConfirmingDelete ? (
+                  <button 
+                    type="button" 
+                    onClick={handleTriggerDelete} 
+                    className="text-rose-500 hover:text-rose-700 font-black text-sm uppercase flex items-center gap-2 transition-all cursor-pointer relative z-[210]"
+                  >
+                    <TrashIcon className="h-5 w-5" /> <span>削除...</span>
+                  </button>
+                ) : (
+                  <div className="flex items-center gap-2 animate-in slide-in-from-left-2 duration-200">
+                    <span className="text-[10px] font-black text-rose-600 bg-rose-100 px-2 py-1 rounded uppercase tracking-tighter mr-1">本当に消しますか？</span>
+                    <button 
+                      type="button" 
+                      onClick={handleFinalDelete} 
+                      className="bg-rose-600 text-white font-black px-4 py-2 rounded-lg text-xs hover:bg-rose-700 shadow-sm active:scale-95 transition-all cursor-pointer disabled:opacity-50"
+                      disabled={isSaving}
+                    >
+                      はい
+                    </button>
+                    <button 
+                      type="button" 
+                      onClick={handleCancelDelete} 
+                      className="bg-slate-200 text-slate-600 font-black px-4 py-2 rounded-lg text-xs hover:bg-slate-300 active:scale-95 transition-all cursor-pointer"
+                    >
+                      戻る
+                    </button>
+                  </div>
+                )
+              ) : <div />}
+            </div>
+
             <div className="flex gap-4">
                 <button type="button" onClick={onClose} className="px-6 py-3 font-black text-slate-400 text-sm uppercase hover:text-slate-600 transition-all cursor-pointer">キャンセル</button>
-                <button type="submit" className="bg-sky-600 text-white font-black py-4 px-10 rounded-2xl shadow-lg hover:bg-sky-700 transition-all text-sm uppercase flex items-center gap-2 cursor-pointer" disabled={isSaving}>
+                <button type="submit" className="bg-sky-600 text-white font-black py-4 px-10 rounded-2xl shadow-lg hover:bg-sky-700 transition-all text-sm uppercase flex items-center gap-2 cursor-pointer disabled:opacity-50" disabled={isSaving || isConfirmingDelete}>
                   {isSaving ? <LoadingIcon className="h-5 w-5 text-white" /> : '保存する'}
                 </button>
             </div>

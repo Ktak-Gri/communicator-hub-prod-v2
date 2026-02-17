@@ -46,9 +46,9 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ currentSettings, onStart,
         return sCenter.includes(targetCenterAbbr);
     });
     const candidates = filteredScenarios.length > 0 ? filteredScenarios : scenarios;
-    // FIX: Added difficulty and personality to the default scenario object to match Scenario type
+    // FIX: Added internalId, difficulty and personality to the default scenario object to match Scenario type
     const scenario: Scenario = candidates[Math.floor(Math.random() * candidates.length)] || { 
-        id: 'dummy', name: '全般的な問い合わせ', initialInquiry: '契約について聞きたい', center: '全般', smartphonePlan: '-', lightPlan: '-', difficulty: 3, personality: '一般的'
+        id: 'dummy', internalId: 'dummy-internal', name: '全般的な問い合わせ', initialInquiry: '契約について聞きたい', center: '全般', smartphonePlan: '-', lightPlan: '-', difficulty: 3, personality: '一般的'
     };
     setTimeout(() => {
         onStart({ selectedCenter: targetCenterAbbr || 'AIお任せ', selectedScenario: scenario });

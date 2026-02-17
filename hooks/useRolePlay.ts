@@ -1,9 +1,8 @@
-
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { apiClient } from '../apiClient.ts';
 import { TranscriptItem, Scenario, Persona } from '../types.ts';
 import { Modality } from '@google/genai';
-import { decode, decodeAudioData, encode } from '../components/utils.ts';
+import { decode, decodeAudioData, encode } from '../ui/utils.ts';
 
 export const useRolePlay = (scenario: Scenario | null, traineeName: string) => {
     const [status, setStatus] = useState<'ringing' | 'connecting' | 'connected' | 'analyzing' | 'idle'>('idle');
@@ -80,7 +79,7 @@ export const useRolePlay = (scenario: Scenario | null, traineeName: string) => {
                         setMessages(prev => [...prev, 
                             { speaker: 'user', text: inputBuffer.current },
                             { speaker: 'model', text: outputBuffer.current }
-                        ].filter(m => m.text.trim()));
+                        ].filter(m => String(m.text || "").trim()));
                         inputBuffer.current = ''; outputBuffer.current = '';
                     }
                 }
@@ -93,11 +92,7 @@ export const useRolePlay = (scenario: Scenario | null, traineeName: string) => {
         if (!scenario) return;
         setIsAnalyzing(true);
         try {
-            const res = await apiClient.generateContent('gemini-3-pro-preview', 
-                `分析してください。シナリオ: ${scenario.name}, 対話: ${JSON.stringify(messages)}`, 
-                { responseMimeType: 'application/json' }
-            );
-            const analysis = JSON.parse(res.text || '{}');
+            const analysis = await apiClient.analyzeRolePlay(scenario, messages);
             const log = { ...analysis, traineeName, scenarioName: scenario.name, fullTranscript: messages, timestamp: new Date().toLocaleString() };
             await apiClient.saveRolePlayLog(log);
             setStatus('idle');

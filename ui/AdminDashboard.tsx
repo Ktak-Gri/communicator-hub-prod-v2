@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { 
   ArrowPathIcon, PlusIcon, PencilIcon, Cog6ToothIcon, ListIcon, 
@@ -6,13 +5,13 @@ import {
   TrashIcon, BookOpenIcon, LoadingIcon
 } from './Icons.tsx';
 import { MasterSetting, Scenario, Trainee, TestQuestion, MasterDataItem } from '../types.ts';
-import { requestWithJsonp } from '../api.ts';
+import { apiClient } from '../apiClient.ts';
 import { useAdminDashboard } from '../hooks/useAdminDashboard.ts';
 import ScenarioEditorModal from './ScenarioEditorModal.tsx';
 import TestQuestionEditorModal from './TestQuestionEditorModal.tsx';
-import NGWordsModal from '../components/NGWordsModal.tsx';
-import CenterSettingsModal from '../components/CenterSettingsModal.tsx';
-import FaqTopicsModal from '../components/FaqTopicsModal.tsx';
+import NGWordsModal from './NGWordsModal.tsx';
+import CenterSettingsModal from './CenterSettingsModal.tsx';
+import FaqTopicsModal from './FaqTopicsModal.tsx';
 import AutonomousSimulator from './AutonomousSimulator.tsx';
 import { LogViewer } from './LogViewer.tsx';
 
@@ -51,6 +50,9 @@ const AdminDashboard: React.FC<AdminDashboardProps> = (props) => {
   const [isCenterModalOpen, setIsCenterModalOpen] = useState(false);
   const [isFaqModalOpen, setIsFaqModalOpen] = useState(false);
 
+  // インライン確認用のIDステート
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+
   const renderStars = (level: number) => (
     <div className="flex text-amber-400 gap-0.5 scale-75 origin-left">
       {[...Array(5)].map((_, j) => (
@@ -59,47 +61,47 @@ const AdminDashboard: React.FC<AdminDashboardProps> = (props) => {
     </div>
   );
 
-  // --- 削除ロジック ---
-
-  const handleDeleteScenario = async (s: Scenario, e?: React.MouseEvent) => {
+  /**
+   * 削除処理のコア実行関数
+   * 削除成功後にモーダルを閉じるように修正 (V8.0.5)
+   */
+  const handleExecuteDelete = async (e: React.MouseEvent | null, item: any, type: 'シナリオ' | 'テスト問題') => {
     if (e) {
-        e.preventDefault();
-        e.stopPropagation();
+      e.stopPropagation();
+      e.preventDefault();
     }
-    if (!window.confirm(`「${s.name}」を完全に削除しますか？`)) return;
     
-    const targetId = s.internalId || s.id;
-    if (!targetId) {
-        alert("エラー: 削除対象のIDが見つかりません。一度同期を行ってください。");
+    if (isSaving) return;
+
+    const targetId = String(item.id || item.internalId || "").trim();
+    if (!targetId || targetId.startsWith('row-')) {
+        alert("管理IDが未確定です。一度「同期」を行ってから削除してください。");
         return;
     }
 
-    const next = await deleteItem(targetId, props.scenarios, 'シナリオ', ["ID", "シナリオ名", "センター", "スマホプラン", "光プラン", "最初の問い合わせ内容", "難易度", "性質"]);
-    if (next) {
-      props.onUpdateScenarios(next);
-      setIsScenarioModalOpen(false);
-      setEditingScenario(null);
-    }
-  };
-
-  const handleDeleteTest = async (q: TestQuestion, e?: React.MouseEvent) => {
-    if (e) {
-        e.preventDefault();
-        e.stopPropagation();
-    }
-    if (!window.confirm(`問題「${q.name}」を完全に削除しますか？`)) return;
-    
-    const targetId = q.internalId || q.id;
-    if (!targetId) {
-        alert("エラー: 削除対象のIDが見つかりません。一度同期を行ってください。");
-        return;
-    }
-
-    const next = await deleteItem(targetId, props.testQuestions, 'テスト問題', ["ID", "テスト名", "センター", "問題文", "解答", "難易度"]);
-    if (next) {
-      props.onUpdateTestQuestions(next);
-      setIsTestModalOpen(false);
-      setEditingTest(null);
+    try {
+      console.info(`[Admin] Execution deletion for ${type}: ${targetId}`);
+      if (type === 'シナリオ') {
+        const next = await deleteItem(targetId, props.scenarios, 'シナリオ');
+        if (next) {
+            props.onUpdateScenarios(next);
+            // 削除成功時にモーダルを閉じる
+            setIsScenarioModalOpen(false);
+            setEditingScenario(null);
+        }
+      } else {
+        const next = await deleteItem(targetId, props.testQuestions, 'テスト問題');
+        if (next) {
+            props.onUpdateTestQuestions(next);
+            // 削除成功時にモーダルを閉じる
+            setIsTestModalOpen(false);
+            setEditingTest(null);
+        }
+      }
+      setDeleteConfirmId(null);
+    } catch (err: any) {
+      console.error("[Admin] Deletion Error:", err);
+      alert(`削除に失敗しました: ${err.message}`);
     }
   };
 
@@ -114,8 +116,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = (props) => {
             </h2>
           </div>
           <div className="flex gap-2">
-             <button type="button" onClick={props.onSync} className="bg-emerald-600 text-white font-black py-1.5 px-3 rounded-lg hover:bg-emerald-700 transition shadow-sm flex items-center gap-1.5 active:scale-95 text-[11px] cursor-pointer">
-                <ArrowPathIcon className="h-3.5 w-3.5" /> <span>同期</span>
+             <button type="button" onClick={() => props.onSync()} className="bg-emerald-600 text-white font-black py-1.5 px-3 rounded-lg hover:bg-emerald-700 transition shadow-sm flex items-center gap-1.5 active:scale-95 text-[11px] cursor-pointer disabled:opacity-50" disabled={isSaving}>
+                <ArrowPathIcon className={`h-3.5 w-3.5 ${isSaving ? 'animate-spin' : ''}`} /> <span>同期</span>
              </button>
              <button type="button" onClick={props.onLogout} className="bg-slate-100 text-slate-500 font-black py-1.5 px-3 rounded-lg hover:bg-slate-200 transition flex items-center gap-1.5 active:scale-95 text-[11px] cursor-pointer">
                 <LogoutIcon className="h-3.5 w-3.5" /> <span>終了</span>
@@ -155,45 +157,43 @@ const AdminDashboard: React.FC<AdminDashboardProps> = (props) => {
                       <th className="px-5 py-2 border-l border-slate-100 text-[9px]">所属</th>
                       <th className="px-5 py-2 border-l border-slate-100 text-[9px]">シナリオ名</th>
                       <th className="px-5 py-2 w-24 text-center border-l border-slate-100 text-[9px]">難易度</th>
-                      <th className="px-5 py-2 w-24 text-right text-[9px]">操作</th>
+                      <th className="px-5 py-2 text-right text-[9px] w-40">操作</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-50">
-                    {props.scenarios.map((s, idx) => (
-                      <tr key={s.internalId || idx} className="hover:bg-slate-50/50 transition-colors group cursor-pointer" onClick={() => { setEditingScenario(s); setIsScenarioModalOpen(true); }}>
-                        <td className="px-5 py-1 text-slate-400 font-bold text-center h-10 align-middle">{idx + 1}</td>
-                        <td className="px-5 py-1 font-mono text-slate-400 truncate max-w-[120px] h-10 align-middle">{s.id || '-'}</td>
-                        <td className="px-5 py-1 border-l border-slate-100 h-10 align-middle">
-                            <span className="text-[8px] text-sky-500 font-black px-1.5 py-0.5 bg-sky-50 rounded border border-sky-100 uppercase leading-none inline-block">{s.center || '全般'}</span>
-                        </td>
-                        <td className="px-5 py-1 border-l border-slate-100 h-10 align-middle">
-                          <span className="font-black text-slate-700 leading-none truncate block max-w-md">{s.name}</span>
-                        </td>
-                        <td className="px-5 py-1 flex justify-center border-l border-slate-100 items-center h-10 align-middle">{renderStars(s.difficulty || 0)}</td>
-                        <td className="px-5 py-1 text-right h-10 align-middle">
-                          <div className="flex justify-end gap-1.5 pr-1">
-                            {/* 編集ボタン */}
-                            <button 
-                                type="button"
-                                onClick={(e) => { e.stopPropagation(); setEditingScenario(s); setIsScenarioModalOpen(true); }}
-                                className="p-2 text-slate-400 hover:text-sky-600 transition-colors cursor-pointer"
-                                title="編集"
-                            >
-                              <PencilIcon className="h-4 w-4" />
-                            </button>
-                            {/* 削除ボタン */}
-                            <button 
-                                type="button"
-                                onClick={(e) => handleDeleteScenario(s, e)} 
-                                className="p-2 text-slate-300 hover:text-rose-600 transition-colors cursor-pointer"
-                                title="削除"
-                            >
-                              <TrashIcon className="h-4 w-4" />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
+                    {props.scenarios.map((s, idx) => {
+                      const sid = String(s.id || s.internalId || "");
+                      const isConfirming = deleteConfirmId === sid;
+                      return (
+                        <tr key={sid || idx} className="hover:bg-slate-50/50 transition-colors group cursor-pointer" onClick={() => { setEditingScenario(s); setIsScenarioModalOpen(true); }}>
+                          <td className="px-5 py-1 text-slate-400 font-bold text-center h-12 align-middle">{idx + 1}</td>
+                          <td className="px-5 py-1 font-mono text-slate-400 truncate max-w-[120px] h-12 align-middle">{s.id || '-'}</td>
+                          <td className="px-5 py-1 border-l border-slate-100 h-12 align-middle">
+                              <span className="text-[8px] text-sky-500 font-black px-1.5 py-0.5 bg-sky-50 rounded border border-sky-100 uppercase leading-none inline-block">{s.center || '全般'}</span>
+                          </td>
+                          <td className="px-5 py-1 border-l border-slate-100 h-12 align-middle">
+                            <span className="font-black text-slate-700 leading-none truncate block max-w-md">{s.name}</span>
+                          </td>
+                          <td className="px-5 py-1 flex justify-center border-l border-slate-100 items-center h-12 align-middle">{renderStars(s.difficulty || 0)}</td>
+                          <td className="px-5 py-1 text-right h-12 align-middle" onClick={(e) => e.stopPropagation()}>
+                            <div className="flex justify-end gap-1 px-1 min-w-[120px]">
+                              {!isConfirming ? (
+                                <>
+                                  <button type="button" onClick={(e) => { e.stopPropagation(); setEditingScenario(s); setIsScenarioModalOpen(true); }} className="p-2 text-sky-600 hover:bg-sky-50 rounded-lg transition-colors cursor-pointer" title="編集"><PencilIcon className="h-4 w-4" /></button>
+                                  <button type="button" onClick={(e) => { e.stopPropagation(); setDeleteConfirmId(sid); }} className="p-2 text-rose-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all cursor-pointer" title="削除"><TrashIcon className="h-4 w-4" /></button>
+                                </>
+                              ) : (
+                                <div className="flex items-center gap-1 animate-in fade-in slide-in-from-right-1 duration-200">
+                                  <span className="text-[8px] font-black text-rose-600 mr-1">削除?</span>
+                                  <button type="button" onClick={(e) => handleExecuteDelete(e, s, 'シナリオ')} className="bg-rose-600 text-white px-2 py-1 rounded text-[9px] font-black hover:bg-rose-700 cursor-pointer shadow-sm">はい</button>
+                                  <button type="button" onClick={(e) => { e.stopPropagation(); setDeleteConfirmId(null); }} className="bg-slate-200 text-slate-600 px-2 py-1 rounded text-[9px] font-black hover:bg-slate-300 cursor-pointer">戻る</button>
+                                </div>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
@@ -217,45 +217,43 @@ const AdminDashboard: React.FC<AdminDashboardProps> = (props) => {
                         <th className="px-5 py-2 border-l border-slate-100 text-[9px]">所属</th>
                         <th className="px-5 py-2 border-l border-slate-100 text-[9px]">問題タイトル</th>
                         <th className="px-5 py-2 w-24 text-center border-l border-slate-100 text-[9px]">難易度</th>
-                        <th className="px-5 py-2 w-24 text-right text-[9px]">操作</th>
+                        <th className="px-5 py-2 text-right text-[9px] w-40">操作</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-50">
-                      {props.testQuestions.map((q, idx) => (
-                        <tr key={q.internalId || idx} className="hover:bg-slate-50/50 transition-colors group cursor-pointer" onClick={() => { setEditingTest(q); setIsTestModalOpen(true); }}>
-                          <td className="px-5 py-1 text-slate-400 font-bold text-center h-10 align-middle">{idx + 1}</td>
-                          <td className="px-5 py-1 font-mono text-slate-400 truncate max-w-[140px] h-10 align-middle">{q.id || '-'}</td>
-                          <td className="px-5 py-1 border-l border-slate-100 h-10 align-middle">
-                             <span className="text-[8px] text-amber-600 font-black px-1.5 py-0.5 bg-amber-50 rounded border border-amber-100 uppercase leading-none inline-block">{q.center || '全般'}</span>
-                          </td>
-                          <td className="px-5 py-1 border-l border-slate-100 h-10 align-middle">
-                            <span className="font-black text-slate-700 leading-none truncate block max-w-md">{q.name}</span>
-                          </td>
-                          <td className="px-5 py-1 flex justify-center border-l border-slate-100 items-center h-10 align-middle">{renderStars(q.difficulty || 0)}</td>
-                          <td className="px-5 py-1 text-right h-10 align-middle">
-                            <div className="flex justify-end gap-1.5 pr-1">
-                              {/* 編集ボタン */}
-                              <button 
-                                type="button"
-                                onClick={(e) => { e.stopPropagation(); setEditingTest(q); setIsTestModalOpen(true); }}
-                                className="p-2 text-slate-400 hover:text-sky-600 transition-colors cursor-pointer"
-                                title="編集"
-                              >
-                                <PencilIcon className="h-4 w-4" />
-                              </button>
-                              {/* 削除ボタン */}
-                              <button 
-                                type="button"
-                                onClick={(e) => handleDeleteTest(q, e)} 
-                                className="p-2 text-slate-300 hover:text-rose-600 transition-colors cursor-pointer"
-                                title="削除"
-                              >
-                                <TrashIcon className="h-4 w-4" />
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
+                      {props.testQuestions.map((q, idx) => {
+                        const qid = String(q.id || q.internalId || "");
+                        const isConfirming = deleteConfirmId === qid;
+                        return (
+                          <tr key={qid || idx} className="hover:bg-slate-50/50 transition-colors group cursor-pointer" onClick={() => { setEditingTest(q); setIsTestModalOpen(true); }}>
+                            <td className="px-5 py-1 text-slate-400 font-bold text-center h-12 align-middle">{idx + 1}</td>
+                            <td className="px-5 py-1 font-mono text-slate-400 truncate max-w-[140px] h-12 align-middle">{q.id || '-'}</td>
+                            <td className="px-5 py-1 border-l border-slate-100 h-12 align-middle">
+                               <span className="text-[8px] text-amber-600 font-black px-1.5 py-0.5 bg-amber-50 rounded border border-amber-100 uppercase leading-none inline-block">{q.center || '全般'}</span>
+                            </td>
+                            <td className="px-5 py-1 border-l border-slate-100 h-12 align-middle">
+                              <span className="font-black text-slate-700 leading-none truncate block max-w-md">{q.name}</span>
+                            </td>
+                            <td className="px-5 py-1 flex justify-center border-l border-slate-100 items-center h-12 align-middle">{renderStars(q.difficulty || 0)}</td>
+                            <td className="px-5 py-1 text-right h-12 align-middle" onClick={(e) => e.stopPropagation()}>
+                              <div className="flex justify-end gap-1 px-1 min-w-[120px]">
+                                {!isConfirming ? (
+                                  <>
+                                    <button type="button" onClick={(e) => { e.stopPropagation(); setEditingTest(q); setIsTestModalOpen(true); }} className="p-2 text-sky-600 hover:bg-sky-50 rounded-lg transition-colors cursor-pointer" title="編集"><PencilIcon className="h-4 w-4" /></button>
+                                    <button type="button" onClick={(e) => { e.stopPropagation(); setDeleteConfirmId(qid); }} className="p-2 text-rose-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all cursor-pointer" title="削除"><TrashIcon className="h-4 w-4" /></button>
+                                  </>
+                                ) : (
+                                  <div className="flex items-center gap-1 animate-in fade-in slide-in-from-right-1 duration-200">
+                                    <span className="text-[8px] font-black text-rose-600 mr-1">削除?</span>
+                                    <button type="button" onClick={(e) => handleExecuteDelete(e, q, 'テスト問題')} className="bg-rose-600 text-white px-2 py-1 rounded text-[9px] font-black hover:bg-rose-700 cursor-pointer shadow-sm">はい</button>
+                                    <button type="button" onClick={(e) => { e.stopPropagation(); setDeleteConfirmId(null); }} className="bg-slate-200 text-slate-600 px-2 py-1 rounded text-[9px] font-black hover:bg-slate-300 cursor-pointer">戻る</button>
+                                  </div>
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
                     </tbody>
                   </table>
                 </div>
@@ -292,7 +290,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = (props) => {
       {isSaving && (
         <div className="fixed bottom-10 right-10 bg-slate-900 text-white px-6 py-3 rounded-full shadow-2xl flex items-center gap-3 animate-bounce z-[300]">
            <LoadingIcon className="h-5 w-5 text-sky-400" />
-           <span className="text-xs font-black">サーバーを更新中...</span>
+           <span className="text-xs font-black uppercase tracking-widest">Processing...</span>
         </div>
       )}
 
@@ -300,7 +298,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = (props) => {
         <ScenarioEditorModal 
           onClose={() => setIsScenarioModalOpen(false)} 
           onSave={async (data) => { const next = await saveScenario(data, props.scenarios); if (next) props.onUpdateScenarios(next); setIsScenarioModalOpen(false); }} 
-          onDelete={editingScenario ? () => handleDeleteScenario(editingScenario) : undefined}
+          onDelete={(e, scenario) => handleExecuteDelete(e, scenario, 'シナリオ')}
           scenario={editingScenario} 
           masterSettings={props.masterSettings} 
           personalities={props.personalities} 
@@ -312,7 +310,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = (props) => {
         <TestQuestionEditorModal
           onClose={() => setIsTestModalOpen(false)}
           onSave={async (data) => { const next = await saveTest(data, props.testQuestions); if (next) props.onUpdateTestQuestions(next); setIsTestModalOpen(false); }}
-          onDelete={editingTest ? () => handleDeleteTest(editingTest) : undefined}
+          onDelete={(e, question) => handleExecuteDelete(e, question, 'テスト問題')}
           questionData={editingTest}
           masterSettings={props.masterSettings} 
           personalities={props.personalities} 
@@ -322,21 +320,21 @@ const AdminDashboard: React.FC<AdminDashboardProps> = (props) => {
 
       <NGWordsModal isOpen={isNgModalOpen} onClose={() => setIsNgModalOpen(false)} ngWords={props.ngWords} setNgWords={async (w) => {
           const tableData = [["NGワード"], ...w.map(row => [row])];
-          await requestWithJsonp('updateSheet', { sheet: 'NGワード', data: tableData }, props.adminToken);
+          await apiClient.updateSheet('NGワード', tableData, props.adminToken);
           props.onUpdateNgWords(w);
           return true;
       }} isSaving={isSaving} />
 
       <CenterSettingsModal isOpen={isCenterModalOpen} onClose={() => setIsCenterModalOpen(false)} masterSettings={props.masterSettings} onSave={async (s) => {
           const tableData = [["センター名", "略称", "表示", "ソート順", "概要表示"], ...s.map(r => [r.name, r.abbreviation, r.displayFlag, r.sortOrder, r.showInSummary])];
-          await requestWithJsonp('updateSheet', { sheet: 'センターマスタ', data: tableData }, props.adminToken);
+          await apiClient.updateSheet('センターマスタ', tableData, props.adminToken);
           props.onUpdateMasterSettings(s);
           return true;
       }} isSaving={isSaving} />
 
       <FaqTopicsModal isOpen={isFaqModalOpen} onClose={() => setIsFaqModalOpen(false)} faqTopics={props.faqTopics} onSaveTopics={async (t) => {
           const tableData = [["トピック"], ...t.map(row => [row])];
-          await requestWithJsonp('updateSheet', { sheet: 'テストトピック', data: tableData }, props.adminToken);
+          await apiClient.updateSheet('テストトピック', tableData, props.adminToken);
           props.onUpdateFaqTopics(t);
           return true;
       }} isSaving={isSaving} />

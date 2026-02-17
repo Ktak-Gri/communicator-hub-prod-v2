@@ -12,6 +12,9 @@ import CenterRegistrationPage from './CenterRegistrationPage.tsx';
 import PreflightCheckPage from './PreflightCheckPage.tsx';
 import AdminLoginModal from './AdminLoginModal.tsx';
 import SettingsPanel from './SettingsPanel.tsx';
+import LearningPage from './LearningPage.tsx';
+import InteractiveQuestioningTrainer from './InteractiveQuestioningTrainer.tsx';
+import OneOnOneHub from './OneOnOneHub.tsx';
 import { apiClient } from '../apiClient.ts';
 
 export const LoadingView = () => (
@@ -106,23 +109,23 @@ export const AdminView = ({ logic }: { logic: any }) => (
     onSync={logic.refresh}
     refreshSettings={logic.refresh}
     masterSettings={logic.masters}
-    onUpdateMasterSettings={() => logic.refresh()}
-    ngWords={[]}
-    onUpdateNgWords={() => {}}
+    onUpdateMasterSettings={(next: any) => logic.setMasters(next)}
+    ngWords={logic.ngWords}
+    onUpdateNgWords={(next: any) => logic.setNgWords(next)}
     scenarios={logic.scenarios}
     onUpdateScenarios={(next: any) => logic.setScenarios(next)}
     trainees={logic.trainees}
     testQuestions={logic.testQuestions}
     onUpdateTestQuestions={(next: any) => logic.setTestQuestions(next)}
-    faqTopics={[]}
-    onUpdateFaqTopics={() => {}}
+    faqTopics={logic.faqTopics}
+    onUpdateFaqTopics={(next: any) => logic.setFaqTopics(next)}
     webAppUrl=""
     spreadsheetId=""
     appSettings={{}}
     onUpdateAppSettings={() => {}}
     apiKey={null}
     onLogout={logic.logout}
-    personalities={[]}
+    personalities={logic.personalities}
   />
 );
 
@@ -172,13 +175,13 @@ export const RPView = ({ logic }: { logic: any }) => {
 export const TestView = ({ logic }: { logic: any }) => (
   <KnowledgeTest
     testQuestions={logic.testQuestions}
-    faqTopics={[]}
+    faqTopics={logic.faqTopics}
     masterSettings={logic.masters}
     traineeName={logic.traineeName}
     center={logic.currentCenter}
     apiKey={null}
     adminToken={logic.adminToken}
-    onBack={() => logic.setPage('home')}
+    onBack={() => logic.setPage('learning')}
   />
 );
 
@@ -211,4 +214,32 @@ export const SettingsView = ({ logic }: { logic: any }) => (
 
 export const PreflightView = ({ error, onRetry }: { error: any; onRetry: any }) => (
   <PreflightCheckPage error={error} onRetry={onRetry} />
+);
+
+export const LearningView = ({ logic }: { logic: any }) => (
+  <LearningPage onNavigate={(p: any) => logic.setPage(p)} />
+);
+
+export const TrainerView = ({ logic }: { logic: any }) => (
+  <InteractiveQuestioningTrainer
+    onBack={() => logic.setPage('learning')}
+    traineeName={logic.traineeName}
+    center={logic.currentCenter}
+    apiKey={null}
+    adminToken={logic.adminToken}
+  />
+);
+
+export const OneOnOneView = ({ logic }: { logic: any }) => (
+  <OneOnOneHub
+    traineeName={logic.traineeName}
+    trainees={logic.trainees}
+    currentCenter={logic.currentCenter}
+    onComplete={(transcript: any, scenario: any, persona: any) => {
+      console.log("1on1 Complete", transcript);
+      logic.setPage('home');
+    }}
+    isAnalyzing={false}
+    onBack={() => logic.setPage('home')}
+  />
 );

@@ -1,7 +1,6 @@
-
 import React, { useEffect, useRef } from 'react';
 import { Scenario, TranscriptItem } from '../types.ts';
-import { LoadingIcon, ArrowLeftIcon, PhoneDownIcon, PhoneIcon, SparklesIcon, MicIcon } from './Icons.tsx';
+import { LoadingIcon, ArrowLeftIcon, PhoneDownIcon, PhoneIcon, SparklesIcon, MicIcon, WifiOffIcon } from './Icons.tsx';
 import { useRolePlaySession } from '../hooks/useRolePlaySession.ts';
 
 interface RolePlayScreenProps {
@@ -56,7 +55,26 @@ const RolePlayScreen: React.FC<RolePlayScreenProps> = ({
             <button onClick={startSession} className="bg-emerald-600 hover:bg-emerald-500 text-white px-12 py-5 rounded-[2rem] shadow-2xl text-xl font-black tracking-widest active:scale-95 transition-all">受電する</button>
           </div>
         )}
+
+        {status === 'error' && (
+          <div className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-slate-950 animate-fade-in px-10 text-center">
+            <WifiOffIcon className="h-16 w-16 text-rose-500 mb-6" />
+            <h3 className="text-xl font-black text-rose-400 mb-2">接続エラー</h3>
+            <p className="text-slate-400 text-sm font-bold leading-relaxed mb-8">
+              音声サーバーへの接続に失敗しました。<br/>
+              APIキーの設定やネットワーク環境を確認してください。
+            </p>
+            <button onClick={onBack} className="bg-slate-800 text-white px-8 py-3 rounded-xl font-black text-sm">メニューに戻る</button>
+          </div>
+        )}
         
+        {status === 'connecting' && (
+          <div className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-slate-950 animate-fade-in">
+            <LoadingIcon className="h-10 w-10 text-sky-500 mb-4" />
+            <p className="font-black text-sky-400 text-xs tracking-widest uppercase">Connecting to Voice Client...</p>
+          </div>
+        )}
+
         {(status === 'connected' || status === 'analyzing') && (
           <div className="h-full p-6 overflow-y-auto space-y-6 custom-scrollbar bg-gradient-to-b from-transparent to-slate-950/50">
             {messages.length === 0 && <div className="h-full flex flex-col items-center justify-center opacity-10 space-y-4">

@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { TestQuestion, TestResult } from '../types.ts';
 import { apiClient } from '../apiClient.ts';
@@ -13,7 +12,7 @@ export const useTestSession = () => {
     setState('generating');
     setError(null);
     try {
-      // FIX: Calling method that now exists in apiClient
+      // FIX: Calling generateTestQuestion which is now defined in apiClient
       const generated = await apiClient.generateTestQuestion(center, topic, difficulty);
       setQuestion({ ...generated, id: `gen-${Date.now()}` });
       setState('in_progress');
@@ -27,11 +26,11 @@ export const useTestSession = () => {
     if (!question) return;
     setState('submitting');
     try {
-      // FIX: Calling method that now exists in apiClient
+      // FIX: Calling scoreTestAnswer which is now defined in apiClient
       const scoreData = await apiClient.scoreTestAnswer(question, answer);
       setResult({ ...scoreData, modelAnswer: question.answerText });
       setState('completed');
-      // FIX: saveTestLog only takes 1 argument in apiClient
+      // FIX: Passing single object argument to saveTestLog as per apiClient definition
       await apiClient.saveTestLog({ ...scoreData, questionId: question.id, userAnswer: answer });
     } catch (e: any) {
       setError(e.message);

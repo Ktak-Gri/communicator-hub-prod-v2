@@ -71,9 +71,10 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ currentSettings, onStart,
     });
 
     const candidates = filteredScenarios.length > 0 ? filteredScenarios : scenarios;
-    // FIX: Added difficulty and personality to the default scenario object to match Scenario type
+    // FIX: Added internalId, difficulty and personality to the default scenario object to match Scenario type
     const scenario: Scenario = candidates[Math.floor(Math.random() * candidates.length)] || { 
         id: 'dummy', 
+        internalId: 'dummy-internal',
         name: '全般的な問い合わせ', 
         initialInquiry: '契約について聞きたい', 
         center: '全般', 

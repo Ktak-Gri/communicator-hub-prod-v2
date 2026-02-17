@@ -20,7 +20,8 @@ const LoginScreen: React.FC<LoginScreenProps> = ({
   isLoading, 
   error 
 }) => {
-  const isNameEmpty = !name.trim();
+  // name が undefined の場合に備えてフォールバック
+  const isNameEmpty = !(name || '').trim();
 
   return (
     <div className="bg-[#f8fafc] min-h-screen flex flex-col items-center justify-center p-4 text-slate-900 animate-fade-in">
@@ -51,7 +52,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({
             <div className="relative">
               <input
                 type="text"
-                value={name}
+                value={name || ''}
                 onChange={(e) => onNameChange(e.target.value)}
                 className={`w-full py-4 px-5 bg-slate-50 border-2 ${error ? 'border-rose-400' : 'border-slate-100'} rounded-2xl text-slate-800 text-base focus:outline-none focus:border-sky-500 focus:bg-white transition-all font-black text-center shadow-inner placeholder:text-slate-300`}
                 placeholder="氏名を入力"
