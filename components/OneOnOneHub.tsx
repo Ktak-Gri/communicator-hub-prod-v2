@@ -151,9 +151,10 @@ const OneOnOneHub: React.FC<OneOnOneHubProps> = ({ traineeName, trainees, curren
         await requestWithJsonp('endCall', { sessionId: session.sessionId });
         recognitionRef.current?.stop(); setIsListening(false); stopRingtone();
         if (session.receiver === traineeName) {
-            // FIX: Added difficulty and personality to match Scenario type
+            // FIX: Added internalId, difficulty and personality to match Scenario type
             const dummyScenario: Scenario = { 
                 id: '1on1', 
+                internalId: '1on1-internal',
                 name: topic, 
                 initialInquiry: topic, 
                 center: '1on1', 

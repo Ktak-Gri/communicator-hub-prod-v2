@@ -1,3 +1,4 @@
+
 import React from 'react';
 
 export type ActivePage = 'login' | 'home' | 'roleplay' | 'learning' | 'history' | 'center-summary' | 'center-registration' | 'admin' | 'preflight_error' | 'one-on-one' | 'learning-test' | 'learning-trainer' | null;
@@ -23,6 +24,7 @@ export interface MasterSetting {
 
 export interface Scenario {
   id: string;
+  internalId: string; // 内部管理用
   name: string;
   center: string;
   smartphonePlan: string;
@@ -34,6 +36,7 @@ export interface Scenario {
 
 export interface TestQuestion {
   id: string;
+  internalId: string; // 内部管理用
   name: string;
   center: string;
   questionText: string;

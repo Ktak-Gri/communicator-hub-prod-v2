@@ -30,139 +30,146 @@ const callJsonp = async (action: string, data: any = {}, token: string | null = 
   });
 };
 
-export const apiClient = {
-  getSettings: () => callJsonp('getSettings'),
-  validateTrainee: (name: string) => callJsonp('validateTrainee', { name }),
-  adminLogin: (password: string) => callJsonp('adminLogin', { password }),
-  saveLog: (action: string, data: any, token: string | null) => callJsonp(action, data, token),
-  updateSheet: (sheet: string, data: any[][], token: string | null) => callJsonp('updateSheet', { sheet, data }, token),
-  pollCall: (traineeName: string) => callJsonp('pollCall', { traineeName }),
-  initiateCall: (data: any) => callJsonp('initiateCall', data),
-  endCall: (sessionId: string, traineeName: string) => callJsonp('endCall', { sessionId, traineeName }),
-  // Added missing GAS methods
-  syncTranscript: (sessionId: string, transcript: any) => callJsonp('syncTranscript', { sessionId, transcript }),
-  saveRolePlayLog: (data: any, token: string | null) => callJsonp('saveRolePlayLog', data, token),
-  saveTestLog: (data: any, token: string | null) => callJsonp('saveTestLog', data, token),
-  
-  // Gemini Logic Implementations
-  generateTestQuestion: async (center: string, topic: string, difficulty: string) => {
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-    const prompt = `ドコモの教育担当として、「${center}」向けの高品質なテスト問題を作成してください。トピック: ${topic}, 難易度: ${difficulty}。現行5プラン(MAX, ポイ活MAX/20, mini, ahamo)に基づいた内容にし、問題文と模範解答をJSONで返してください。`;
-    const response = await ai.models.generateContent({
-      model: 'gemini-3-flash-preview',
-      contents: prompt,
-      config: {
-        responseMimeType: 'application/json',
-        responseSchema: {
-          type: Type.OBJECT,
-          properties: {
+/**
+ * Gemini API 応答の構造を定義するスキーマ
+ */
+const SCHEMAS: Record<string, any> = {
+    generateTestQuestion: {
+        type: Type.OBJECT,
+        properties: {
             name: { type: Type.STRING },
             questionText: { type: Type.STRING },
             answerText: { type: Type.STRING },
             difficulty: { type: Type.NUMBER }
-          },
-          required: ["name", "questionText", "answerText"]
-        }
-      }
-    });
-    return JSON.parse(response.text || '{}');
-  },
-
-  scoreTestAnswer: async (question: any, userAnswer: string) => {
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-    const prompt = `問題: ${question.questionText}\n模範解答: ${question.answerText}\n研修生の回答: ${userAnswer}\n上記を採点してください。`;
-    const response = await ai.models.generateContent({
-      model: 'gemini-3-pro-preview',
-      contents: prompt,
-      config: {
-        responseMimeType: 'application/json',
-        responseSchema: {
-          type: Type.OBJECT,
-          properties: {
-            score: { type: Type.NUMBER },
-            evaluation: { type: Type.STRING }
-          },
-          required: ["score", "evaluation"]
-        }
-      }
-    });
-    return JSON.parse(response.text || '{}');
-  },
-
-  generateQuestioningScenario: async () => {
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-    const prompt = "ドコモのコールセンターを想定した、対話戦略（質問力）トレーニング用のシナリオを作成してください。";
-    const response = await ai.models.generateContent({
-      model: 'gemini-3-flash-preview',
-      contents: prompt,
-      config: {
-        responseMimeType: 'application/json',
-        responseSchema: {
-          type: Type.OBJECT,
-          properties: {
-            topic: { type: Type.STRING },
-            situation: { type: Type.STRING },
-            initialInquiry: { type: Type.STRING }
-          },
-          required: ["topic", "situation", "initialInquiry"]
-        }
-      }
-    });
-    return JSON.parse(response.text || '{}');
-  },
-
-  analyzeQuestionType: async (text: string) => {
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-    const prompt = `以下の研修生の質問を分析し、オープン質問かクローズド質問かを判別してください: ${text}`;
-    const response = await ai.models.generateContent({
-      model: 'gemini-3-flash-preview',
-      contents: prompt,
-      config: {
-        responseMimeType: 'application/json',
-        responseSchema: {
-          type: Type.OBJECT,
-          properties: {
-            questionType: { type: Type.STRING },
-            suggestion: { type: Type.STRING }
-          },
-          required: ["questionType", "suggestion"]
-        }
-      }
-    });
-    return JSON.parse(response.text || '{}');
-  },
-
-  analyzeRolePlay: async (scenario: any, transcript: any[]) => {
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-    const transcriptText = transcript.map(t => `${t.speaker === 'user' ? '研修生' : '顧客'}: ${t.text}`).join('\n');
-    const prompt = `ロールプレイの対話を分析してください。シナリオ: ${scenario.name}\n対話ログ:\n${transcriptText}`;
-    const response = await ai.models.generateContent({
-      model: 'gemini-3-pro-preview',
-      contents: prompt,
-      config: {
-        responseMimeType: 'application/json',
-        responseSchema: {
-          type: Type.OBJECT,
-          properties: {
+        },
+        required: ["name", "questionText", "answerText"]
+    },
+    analyzeRolePlay: {
+        type: Type.OBJECT,
+        properties: {
             totalScore: { type: Type.NUMBER },
             scores: {
-              type: Type.OBJECT,
-              properties: {
-                listeningSkill: { type: Type.NUMBER },
-                empathy: { type: Type.NUMBER },
-                accuracy: { type: Type.NUMBER },
-                problemSolving: { type: Type.NUMBER },
-                summarization: { type: Type.NUMBER },
-                politeness: { type: Type.NUMBER }
-              }
+                type: Type.OBJECT,
+                properties: {
+                    politeness: { type: Type.NUMBER },
+                    empathy: { type: Type.NUMBER },
+                    accuracy: { type: Type.NUMBER },
+                    problemSolving: { type: Type.NUMBER },
+                    listeningSkill: { type: Type.NUMBER },
+                    summarization: { type: Type.NUMBER }
+                }
             },
             summary: { type: Type.STRING },
             keigoFeedback: { type: Type.STRING }
-          },
-          required: ["totalScore", "summary"]
-        }
-      }
+        },
+        required: ["totalScore", "summary"]
+    },
+    generateQuestioningScenario: {
+        type: Type.OBJECT,
+        properties: {
+            topic: { type: Type.STRING },
+            situation: { type: Type.STRING },
+            initialInquiry: { type: Type.STRING }
+        },
+        required: ["topic", "situation", "initialInquiry"]
+    },
+    analyzeQuestion: {
+        type: Type.OBJECT,
+        properties: {
+            questionType: { type: Type.STRING },
+            suggestion: { type: Type.STRING }
+        },
+        required: ["questionType", "suggestion"]
+    },
+    analyzeTest: {
+        type: Type.OBJECT,
+        properties: {
+            score: { type: Type.NUMBER },
+            evaluation: { type: Type.STRING }
+        },
+        required: ["score", "evaluation"]
+    }
+};
+
+/**
+ * Gemini API を用いたコンテンツ生成のヘルパー
+ */
+const generateAiContent = async (schemaName: string, prompt: string, systemInstruction?: string) => {
+    // 常に最新のAPIキーを使用するため都度インスタンス化
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    const isComplex = schemaName.includes('analyze');
+    const model = isComplex ? 'gemini-3-pro-preview' : 'gemini-3-flash-preview';
+    
+    const config: any = { 
+        systemInstruction: systemInstruction || "あなたはコールセンター研修専門のAIアシスタントです。常に日本語で、誠実かつ詳細なフィードバックを提供してください。",
+        responseMimeType: "application/json",
+        responseSchema: SCHEMAS[schemaName]
+    };
+
+    const response = await ai.models.generateContent({ 
+        model, 
+        contents: { parts: [{ text: prompt }] }, 
+        config 
     });
     return JSON.parse(response.text || '{}');
+};
+
+export const apiClient = {
+  // --- GAS API ---
+  getSettings: () => callJsonp('getSettings'),
+  validateTrainee: (name: string) => callJsonp('validateTrainee', { name }),
+  adminLogin: (password: string) => callJsonp('adminLogin', { password }),
+  saveRolePlayLog: (data: any) => callJsonp('saveRolePlayLog', data),
+  saveTestLog: (data: any) => callJsonp('saveTestLog', data),
+  updateSheet: (sheet: string, data: any[][], token: string | null) => callJsonp('updateSheet', { sheet, data }, token),
+  pollCall: (traineeName: string) => callJsonp('pollCall', { traineeName }),
+  initiateCall: (data: any) => callJsonp('initiateCall', data),
+  endCall: (traineeName: string) => callJsonp('endCall', { traineeName }),
+  syncTranscript: (traineeName: string, transcript: any) => callJsonp('syncTranscript', { traineeName, transcript }),
+
+  // --- Gemini API ---
+  generateContent: async (model: string, contents: any, config: any) => {
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    const response = await ai.models.generateContent({ model, contents, config });
+    return response;
+  },
+
+  connectLive: (config: any, callbacks: any) => {
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    return ai.live.connect({
+      model: 'gemini-2.5-flash-native-audio-preview-12-2025',
+      config,
+      callbacks
+    });
+  },
+
+  // --- 抽象化された AI アクション ---
+  // FIX: Added analyzeRolePlay method
+  analyzeRolePlay: (scenario: any, transcript: any[]) => {
+      const prompt = `Scenario: ${scenario.name}. Transcript: ${transcript.map(t => `${t.speaker}: ${t.text}`).join('\n')}`;
+      return generateAiContent('analyzeRolePlay', prompt);
+  },
+  
+  // FIX: Added generateTestQuestion method
+  generateTestQuestion: (center: string, topic: string, difficulty: string) => {
+      const prompt = `ドコモの教育担当として、「${center}」向けのテスト問題を作成してください。トピック: ${topic}, 難易度: ${difficulty}`;
+      return generateAiContent('generateTestQuestion', prompt);
+  },
+  
+  // FIX: Added scoreTestAnswer method
+  scoreTestAnswer: (question: any, userAnswer: string) => {
+      const prompt = `【問題】: ${question.questionText}\n【模範解答】: ${question.answerText}\n【研修生の回答】: ${userAnswer}`;
+      const systemInstruction = "あなたは教育担当者です。研修生の回答を厳密に採点し、スコアとアドバイスを返してください。";
+      return generateAiContent('analyzeTest', prompt, systemInstruction);
+  },
+
+  // FIX: Added generateQuestioningScenario method
+  generateQuestioningScenario: () => {
+      return generateAiContent('generateQuestioningScenario', "対話戦略（質問力）トレーニング用のシナリオを作成してください。");
+  },
+
+  // FIX: Added analyzeQuestionType method
+  analyzeQuestionType: (text: string) => {
+      return generateAiContent('analyzeQuestion', `以下の質問を分析してください: ${text}`);
   }
 };

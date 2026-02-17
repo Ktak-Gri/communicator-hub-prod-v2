@@ -31,8 +31,8 @@ export const useTestSession = () => {
       const scoreData = await apiClient.scoreTestAnswer(question, answer);
       setResult({ ...scoreData, modelAnswer: question.answerText });
       setState('completed');
-      // FIX: Calling method that now exists in apiClient
-      await apiClient.saveTestLog({ ...scoreData, questionId: question.id, userAnswer: answer }, null);
+      // FIX: saveTestLog only takes 1 argument in apiClient
+      await apiClient.saveTestLog({ ...scoreData, questionId: question.id, userAnswer: answer });
     } catch (e: any) {
       setError(e.message);
       setState('in_progress');

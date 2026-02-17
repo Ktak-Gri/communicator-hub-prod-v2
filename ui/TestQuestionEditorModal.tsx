@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { CloseIcon, LoadingIcon, TrashIcon } from './Icons.tsx';
 import { MasterSetting, MasterDataItem } from '../types.ts';
@@ -5,7 +6,7 @@ import { MasterSetting, MasterDataItem } from '../types.ts';
 interface TestQuestionEditorModalProps {
   onClose: () => void;
   onSave: (questionData: any) => Promise<void>;
-  onDelete?: (e: React.MouseEvent) => void;
+  onDelete?: () => Promise<void>;
   questionData: any | null;
   isSaving: boolean;
   masterSettings: MasterSetting[];
@@ -21,6 +22,7 @@ const TestQuestionEditorModal: React.FC<TestQuestionEditorModalProps> = ({ onClo
   const [smartphonePlan, setSmartphonePlan] = useState('');
   const [lightPlan, setLightPlan] = useState('');
 
+  const currentSheetId = useMemo(() => String(questionData?.id || "").trim(), [questionData]);
   const availableCenters = useMemo(() => [...masterSettings].sort((a,b) => a.sortOrder - b.sortOrder), [masterSettings]);
 
   useEffect(() => {
@@ -37,16 +39,8 @@ const TestQuestionEditorModal: React.FC<TestQuestionEditorModalProps> = ({ onClo
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSave({ 
-        ...questionData, 
-        name, 
-        questionText, 
-        answerText, 
-        center, 
-        difficulty,
-        smartphonePlan,
-        lightPlan
-    });
+    if (isSaving) return;
+    onSave({ ...questionData, name, questionText, answerText, center, difficulty, smartphonePlan, lightPlan });
   };
 
   return (
@@ -54,38 +48,30 @@ const TestQuestionEditorModal: React.FC<TestQuestionEditorModalProps> = ({ onClo
       <div className="bg-white rounded-[2rem] shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[95vh] pointer-events-auto" onClick={e => e.stopPropagation()}>
         <form onSubmit={handleSubmit} className="flex flex-col h-full">
           <div className="px-6 py-4 border-b flex justify-between items-center bg-white">
-            <h3 className="text-lg font-black text-slate-800 tracking-tight leading-none">{questionData?.id ? 'テスト問題編集' : '新規テスト問題'}</h3>
-            <div className="flex items-center gap-2">
-                {questionData?.id && onDelete && (
-                    <button type="button" onClick={(e) => { e.preventDefault(); e.stopPropagation(); onDelete?.(e); }} className="p-2 text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded-lg transition-all cursor-pointer" title="削除">
-                        <TrashIcon className="h-5 w-5" />
-                    </button>
-                )}
-                <button type="button" onClick={onClose} className="p-2 text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"><CloseIcon className="h-5 w-5" /></button>
-            </div>
+            <h3 className="text-lg font-black text-slate-800 tracking-tight leading-none">
+                {questionData?.internalId || questionData?.id ? 'テスト問題編集' : '新規テスト問題'}
+            </h3>
+            <button type="button" onClick={onClose} className="p-2 text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"><CloseIcon className="h-5 w-5" /></button>
           </div>
           <div className="p-6 space-y-4 overflow-y-auto flex-1 custom-scrollbar">
+            <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 flex items-center justify-between mb-2">
+              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">管理ID</span>
+              <span className="font-mono text-xs font-black text-slate-600 bg-white px-2 py-0.5 rounded border border-slate-200">
+                {currentSheetId || <span className="text-slate-300 font-normal italic">自動発行</span>}
+              </span>
+            </div>
+
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1">
                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">問題タイトル</label>
-                    <input type="text" value={name} onChange={e => setName(e.target.value)} className="w-full p-2.5 bg-slate-50 border-2 border-slate-100 rounded-xl font-bold text-sm focus:border-sky-500 focus:bg-white transition-all outline-none" required />
+                    <input type="text" value={name} onChange={e => setName(e.target.value)} className="w-full p-2.5 bg-slate-50 border-2 border-slate-100 rounded-xl font-bold text-sm focus:border-sky-500 outline-none shadow-sm" required />
                 </div>
                 <div className="space-y-1">
                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">対象センター</label>
-                    <select value={center} onChange={e => setCenter(e.target.value)} className="w-full p-2.5 bg-slate-50 border-2 border-slate-100 rounded-xl font-bold text-sm focus:border-sky-500 focus:bg-white transition-all outline-none cursor-pointer" required>
+                    <select value={center} onChange={e => setCenter(e.target.value)} className="w-full p-2.5 bg-slate-50 border-2 border-slate-100 rounded-xl font-bold text-sm focus:border-sky-500 outline-none cursor-pointer shadow-sm" required>
                         <option value="">選択してください</option>
                         {availableCenters.map(c => <option key={c.abbreviation} value={c.abbreviation}>{c.abbreviation}</option>)}
                     </select>
-                </div>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-1">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">想定スマホプラン</label>
-                    <input type="text" value={smartphonePlan} onChange={e => setSmartphonePlan(e.target.value)} className="w-full p-2.5 bg-slate-50 border-2 border-slate-100 rounded-xl font-bold text-sm focus:border-sky-500 focus:bg-white transition-all outline-none" />
-                </div>
-                <div className="space-y-1">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">想定光プラン</label>
-                    <input type="text" value={lightPlan} onChange={e => setLightPlan(e.target.value)} className="w-full p-2.5 bg-slate-50 border-2 border-slate-100 rounded-xl font-bold text-sm focus:border-sky-500 focus:bg-white transition-all outline-none" />
                 </div>
             </div>
             <div className="space-y-1">
@@ -105,11 +91,22 @@ const TestQuestionEditorModal: React.FC<TestQuestionEditorModalProps> = ({ onClo
                 <textarea value={answerText} onChange={e => setAnswerText(e.target.value)} className="w-full p-3 bg-slate-50 border-2 border-slate-100 rounded-xl font-bold text-sm focus:border-sky-500 focus:bg-white transition-all outline-none shadow-inner" rows={4} required />
             </div>
           </div>
-          <div className="p-4 bg-slate-50 border-t flex justify-end gap-3">
-            <button type="button" onClick={onClose} className="px-6 py-2 font-black text-slate-400 hover:text-slate-600 text-xs cursor-pointer">キャンセル</button>
-            <button type="submit" className="bg-sky-600 text-white font-black py-2.5 px-8 rounded-xl shadow-lg hover:bg-sky-700 transition-all disabled:bg-slate-400 text-xs cursor-pointer" disabled={isSaving}>
-              {isSaving ? <LoadingIcon className="h-4 w-4" /> : '保存'}
-            </button>
+          <div className="p-4 bg-slate-50 border-t flex justify-between items-center">
+            {onDelete && (questionData?.internalId || questionData?.id) ? (
+                <button 
+                  type="button" 
+                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); onDelete(); }} 
+                  className="text-rose-500 hover:text-rose-700 font-black text-xs flex items-center gap-1.5 transition-all cursor-pointer px-4 py-2 hover:bg-rose-50 rounded-lg bg-transparent border-none"
+                >
+                    <TrashIcon className="h-4 w-4" /> <span>問題を削除</span>
+                </button>
+            ) : <div />}
+            <div className="flex gap-3">
+              <button type="button" onClick={onClose} className="px-6 py-2 font-black text-slate-400 hover:text-slate-600 text-xs cursor-pointer">キャンセル</button>
+              <button type="submit" className="bg-sky-600 text-white font-black py-2.5 px-8 rounded-xl disabled:bg-slate-400 text-xs shadow-md transition-all active:scale-95 cursor-pointer" disabled={isSaving}>
+                {isSaving ? <LoadingIcon className="h-4 w-4" /> : '保存'}
+              </button>
+            </div>
           </div>
         </form>
       </div>

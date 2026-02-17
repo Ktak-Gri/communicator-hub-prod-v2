@@ -20,14 +20,19 @@ export const domainMaster = {
     showInSummary: String(domainMaster.getFuzzy(s, ["概要表示", "showInSummary"])).toLowerCase() === 'true'
   }),
 
-  normalizeScenario: (s: any, idx: number): Scenario => ({
-    id: domainMaster.getFuzzy(s, ["ID", "id"]) || `S-${idx}`,
-    name: domainMaster.getFuzzy(s, ["シナリオ名", "name"]),
-    center: domainMaster.getFuzzy(s, ["センター", "center"]),
-    smartphonePlan: domainMaster.getFuzzy(s, ["スマホプラン", "smartphonePlan"]),
-    lightPlan: domainMaster.getFuzzy(s, ["光プラン", "lightPlan"]),
-    initialInquiry: domainMaster.getFuzzy(s, ["最初の問い合わせ内容", "initialInquiry"]),
-    difficulty: Number(domainMaster.getFuzzy(s, ["難易度", "difficulty"]) || 3),
-    personality: domainMaster.getFuzzy(s, ["性質", "personality"])
-  })
+  // FIX: normalizeScenario must return a Scenario object with all required properties including internalId
+  normalizeScenario: (s: any, idx: number): Scenario => {
+    const id = domainMaster.getFuzzy(s, ["ID", "id"]) || `S-${idx}`;
+    return {
+      id,
+      internalId: `S-${idx}-${id}`,
+      name: domainMaster.getFuzzy(s, ["シナリオ名", "name"]),
+      center: domainMaster.getFuzzy(s, ["センター", "center"]),
+      smartphonePlan: domainMaster.getFuzzy(s, ["スマホプラン", "smartphonePlan"]),
+      lightPlan: domainMaster.getFuzzy(s, ["光プラン", "lightPlan"]),
+      initialInquiry: domainMaster.getFuzzy(s, ["最初の問い合わせ内容", "initialInquiry"]),
+      difficulty: Number(domainMaster.getFuzzy(s, ["難易度", "difficulty"]) || 3),
+      personality: domainMaster.getFuzzy(s, ["性質", "personality"])
+    };
+  }
 };

@@ -57,8 +57,8 @@ export const useAppActions = (
         fullTranscript: transcript, 
         persona 
       };
-      // FIX: Method exists in updated apiClient
-      apiClient.saveRolePlayLog(finalFeedback, adminToken).catch(console.error);
+      // FIX: saveRolePlayLog only takes 1 argument in apiClient
+      apiClient.saveRolePlayLog(finalFeedback).catch(console.error);
       return finalFeedback;
     } catch (e) {
       alert("評価に失敗しました。");
