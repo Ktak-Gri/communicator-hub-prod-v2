@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { 
   ArrowPathIcon, PlusIcon, PencilIcon, Cog6ToothIcon, ListIcon, 
@@ -63,7 +64,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = (props) => {
 
   /**
    * 削除処理のコア実行関数
-   * 削除成功後にモーダルを閉じるように修正 (V8.0.5)
+   * 削除成功後にモーダルを閉じるように修正
    */
   const handleExecuteDelete = async (e: React.MouseEvent | null, item: any, type: 'シナリオ' | 'テスト問題') => {
     if (e) {
@@ -80,12 +81,11 @@ const AdminDashboard: React.FC<AdminDashboardProps> = (props) => {
     }
 
     try {
-      console.info(`[Admin] Execution deletion for ${type}: ${targetId}`);
       if (type === 'シナリオ') {
         const next = await deleteItem(targetId, props.scenarios, 'シナリオ');
         if (next) {
             props.onUpdateScenarios(next);
-            // 削除成功時にモーダルを閉じる
+            // シナリオ削除成功時にモーダルを閉じる
             setIsScenarioModalOpen(false);
             setEditingScenario(null);
         }
@@ -93,14 +93,13 @@ const AdminDashboard: React.FC<AdminDashboardProps> = (props) => {
         const next = await deleteItem(targetId, props.testQuestions, 'テスト問題');
         if (next) {
             props.onUpdateTestQuestions(next);
-            // 削除成功時にモーダルを閉じる
+            // テスト問題削除成功時にモーダルを閉じる
             setIsTestModalOpen(false);
             setEditingTest(null);
         }
       }
       setDeleteConfirmId(null);
     } catch (err: any) {
-      console.error("[Admin] Deletion Error:", err);
       alert(`削除に失敗しました: ${err.message}`);
     }
   };
