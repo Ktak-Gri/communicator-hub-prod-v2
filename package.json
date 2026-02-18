@@ -1,0 +1,17 @@
+{
+  "name": "communicator-hub-prod",
+  "private": true,
+  "version": "8.3.0",
+  "type": "module",
+  "description": "コミュニケーター育成HUB - UI Frozen Production Build",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Ktak-Gri/communicator-hub-prod.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Ktak-Gri/communicator-hub-prod/issues"
+  },
+  "homepage": "https://github.com/Ktak-Gri/communicator-hub-prod#readme",
+  "dependencies": {},
+  "devDependencies": {}
+}

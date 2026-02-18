@@ -1,0 +1,9 @@
+{
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ],
+  "name": "Copy of communicator-hub-prod-Stable-GitHub",
+  "displayName": "コミュニケーター育成HUB PRO",
+  "description": "Enterprise AI Training Solution - Production Build"
+}

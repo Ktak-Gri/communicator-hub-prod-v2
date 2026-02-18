@@ -1,0 +1,17 @@
+
+{
+  "release_tag": "V6.33.02-GOLD",
+  "release_date": "2024-05-20",
+  "stable_config": {
+    "WEB_APP_URL": "https://script.google.com/a/macros/ut-g.co.jp/s/AKfycbwcr65YlyPZ9pYXQOaES8bCChhVEqY53UDWYuAOKYb1S8aKtC2exCog76FTL6wB32R-qQ/exec",
+    "SPREADSHEET_ID": "1DkyoKVZ6_iEY2WCQp_eLx3F_har_bCwkkkV-N1wdh6M",
+    "REQUIRED_BACKEND_VERSION": "V6.22.20"
+  },
+  "features": [
+    "Gemini 3 Pro/Flash Integrated",
+    "Latest 5 Plan Logic (MAX, Poikatsu MAX, Poikatsu 20, mini, ahamo)",
+    "Online-only ahamo awareness",
+    "Legacy Plan (eximo/irumo) Transition Handling"
+  ],
+  "recovery_instruction": "もし公開作業中に動作が不安定になった場合は、constants.ts の内容を上記 stable_config の値に戻してください。"
+}

@@ -1,11 +1,17 @@
-<div align="center">
+# コミュニケーター育成HUB PRO (Production Build)
 
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
+## 🚀 概要
+本プロジェクトは、Gemini 3 シリーズを搭載した次世代型研修プラットフォームの最新安定版です。
 
-  <h1>Built with AI Studio</h2>
+## 🛠 プロジェクト構成
+- **Frontend:** React 19 / Tailwind CSS
+- **AI Core:** Gemini 3 Pro/Flash (Live API 2.5)
+- **Backend:** Google Apps Script
+- **Repository:** [Ktak-Gri/communicator-hub-prod](https://github.com/Ktak-Gri/communicator-hub-prod)
 
-  <p>The fastest path from prompt to production with Gemini.</p>
+## 📝 運用ルール
+- **Production Integrity:** UIデザインの整合性を維持しつつ、ロジックの改善を行います。
+- **No Sync Files:** 管理・同期用の特殊ファイルはすべて排除済みです。クリーンな状態を維持してください。
 
-  <a href="https://aistudio.google.com/apps">Start building</a>
-
-</div>
+## ⚙️ システム設定
+`constants.ts` に最新の `WEB_APP_URL` が設定されていることを確認してください。

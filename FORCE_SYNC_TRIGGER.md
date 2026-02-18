@@ -1,0 +1,1 @@
+# Sync recovery is no longer required.
