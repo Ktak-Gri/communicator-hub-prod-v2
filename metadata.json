@@ -3,7 +3,7 @@
     "camera",
     "microphone"
   ],
-  "name": "Copy of communicator-hub-prod-Stable-GitHub",
+  "name": "communicator-hub-prod",
   "displayName": "コミュニケーター育成HUB PRO",
-  "description": "Enterprise AI Training Solution - Production Build"
+  "description": "Enterprise AI Training Solution - Production Build (V8.3.0)"
 }
