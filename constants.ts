@@ -1,4 +1,5 @@
-export const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxSU4z5B3Ny0i7pl-gDqcPxU8emhL3Gg1M1IUFnva-yNkksX6IbL-bNP6QgewNwCCFu/exec';
+//export const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxSU4z5B3Ny0i7pl-gDqcPxU8emhL3Gg1M1IUFnva-yNkksX6IbL-bNP6QgewNwCCFu/exec';
+export const WEB_APP_URL = import.meta.env.VITE_WEB_APP_URL;
 export const SPREADSHEET_ID = '1opytUAU5jO13HnmHvLleI1enqI1qFCBhF3PmfLme1rY';
 export const APP_VERSION = "V8.3.0";
 export const REQUIRED_BACKEND_VERSION = "V6.40.55";
