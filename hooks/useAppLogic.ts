@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { apiClient } from '../apiClient.ts';
 import { dataConverter } from '../domain/data-converter.ts';
@@ -42,7 +41,28 @@ export const useAppLogic = () => {
                 setTrainees(nextTrainees);
                 setNgWords(res.data.ngWords || []);
                 setFaqTopics(res.data.faqTopics || []);
-                setPersonalities((res.data.personalities || []).map((p: any) => ({ name: p.name || p.性質名 || p.性質 || '' })));
+                
+                // 性質データの抽出。あらゆるデータ形式に対応する超堅牢マッピング
+                const rawPersonalities = res.data.personalities || [];
+                const mappedPersonalities: MasterDataItem[] = rawPersonalities.map((p: any) => {
+                    let name = "";
+                    if (typeof p === 'string') {
+                        name = p;
+                    } else if (p && typeof p === 'object') {
+                        // オブジェクトの場合は既知のキーを優先。p.name が空なら p 自体が名前の可能性も考慮
+                        name = String(p.name || p.id || p.性質 || p.性質名 || (typeof p.toString === 'function' ? p.toString() : "") || "");
+                        if (name === "[object Object]") {
+                            name = String(Object.values(p)[0] || "");
+                        }
+                    }
+                    return { name: name.trim() };
+                }).filter((p: MasterDataItem) => p.name !== '' && p.name !== '性質' && p.name !== '性質名');
+                
+                // 重複排除
+                const uniquePersonalities = Array.from(new Set(mappedPersonalities.map(p => p.name)))
+                    .map(name => ({ name }));
+
+                setPersonalities(uniquePersonalities);
             }
             
             // 初回起動時のみページ遷移判定

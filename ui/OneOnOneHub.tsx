@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { Trainee, Scenario, OneOnOneSession, TranscriptItem, Center } from '../types.ts';
 import { requestWithJsonp } from '../api.ts';
@@ -21,13 +20,44 @@ const OneOnOneHub: React.FC<OneOnOneHubProps> = ({ traineeName, trainees, onComp
   const recognitionRef = useRef<any>(null);
 
   const activeTrainees = useMemo(() => {
+    // 比較用の今日の日付（時刻を00:00:00にリセット）
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const myNameNormalized = (traineeName || "").trim().toLowerCase();
+
     return trainees
-      .filter(t => (t.traineeName || (t as any).研修生名 || "").trim().toLowerCase() !== myNameNormalized)
-      .map(t => ({
-          name: (t.traineeName || (t as any).研修生名 || "").trim(),
-          center: (t.center || (t as any).センター || "未所属").trim()
-      }))
+      .filter(t => {
+          const raw = t as any;
+          const name = String(raw.traineeName || raw.研修生名 || "").trim();
+          const normalizedName = name.toLowerCase();
+          
+          // 自分自身を除外
+          if (normalizedName === myNameNormalized) return false;
+          if (!name) return false;
+
+          // 研修終了日のチェック
+          const endDateRaw = t.endDate || raw.研修終了日;
+          if (endDateRaw) {
+              try {
+                  const end = new Date(endDateRaw);
+                  if (!isNaN(end.getTime())) {
+                      const endDateOnly = new Date(end.getFullYear(), end.getMonth(), end.getDate());
+                      // 今日より前（終了済み）の場合はリストから除外
+                      if (endDateOnly < today) return false;
+                  }
+              } catch (e) {
+                  console.warn("Date parse error:", name, endDateRaw);
+              }
+          }
+          return true;
+      })
+      .map(t => {
+          const raw = t as any;
+          return {
+              name: String(raw.traineeName || raw.研修生名 || "").trim(),
+              center: String(raw.center || raw.センター || "未所属").trim()
+          };
+      })
       .sort((a, b) => a.name.localeCompare(b.name, 'ja'));
   }, [trainees, traineeName]);
 
@@ -75,11 +105,13 @@ const OneOnOneHub: React.FC<OneOnOneHubProps> = ({ traineeName, trainees, onComp
         <h2 className="text-2xl font-black text-slate-800">1 on 1 通話</h2>
         <div className="space-y-4">
           <div className="grid grid-cols-2 gap-2 max-h-60 overflow-y-auto p-1 custom-scrollbar">
-            {activeTrainees.map(t => (
+            {activeTrainees.length > 0 ? activeTrainees.map(t => (
               <button key={t.name} onClick={() => setSelectedTrainee(t.name)} className={`p-3 rounded-xl border-2 transition-all text-xs font-bold ${selectedTrainee === t.name ? 'border-sky-500 bg-sky-50 text-sky-700' : 'border-slate-50 bg-slate-50 text-slate-500'}`}>
                 {t.name} ({t.center})
               </button>
-            ))}
+            )) : (
+              <div className="col-span-2 py-8 text-center text-slate-300 font-bold italic">呼び出し可能な研修生はいません</div>
+            )}
           </div>
           <input type="text" value={practiceTopic} onChange={e => setPracticeTopic(e.target.value)} placeholder="練習のテーマ" className="w-full p-4 bg-slate-50 rounded-xl font-bold text-sm outline-none border-2 border-transparent focus:border-sky-400" />
           <button onClick={handleCall} disabled={!selectedTrainee || isCalling} className="w-full bg-sky-600 text-white font-black py-4 rounded-xl shadow-lg hover:bg-sky-700 disabled:bg-slate-100 disabled:text-slate-300">

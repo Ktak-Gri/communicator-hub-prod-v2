@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { Center, MasterSetting } from '../types.ts';
 import { LoadingIcon, CheckCircleIcon, ArrowLeftIcon } from './Icons.tsx';
@@ -15,9 +14,9 @@ interface CenterRegistrationPageProps {
 const CenterRegistrationPage: React.FC<CenterRegistrationPageProps> = ({ traineeName, currentCenter, onUpdateUserSettings, displayableCenters, onBack }) => {
   const normalize = (str: string) => str.replace(/[\s　]/g, "").toLowerCase();
 
-  // displayFlag(C列)がTRUEのものに限定
+  // displayFlag のフィルタを解除し、ソート順のみ適用
   const activeCenters = useMemo(() => {
-    return displayableCenters.filter(s => s.displayFlag === true).sort((a, b) => a.sortOrder - b.sortOrder);
+    return [...displayableCenters].sort((a, b) => a.sortOrder - b.sortOrder);
   }, [displayableCenters]);
 
   const initialCenterObject = useMemo(() => {

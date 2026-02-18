@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { LoadingIcon, PlayIcon } from './Icons.tsx';
 import { APP_VERSION } from '../constants.ts';
@@ -26,15 +25,15 @@ const LoginScreen: React.FC<LoginScreenProps> = ({
   return (
     <div className="bg-[#f8fafc] min-h-screen flex flex-col items-center justify-center p-4 text-slate-900 animate-fade-in">
       <div className="mb-2">
-        <span className="bg-slate-800 text-sky-400 text-[10px] font-black px-4 py-1.5 rounded-full border border-slate-700 uppercase tracking-[0.2em] shadow-sm">
+        <span className="bg-slate-800 text-sky-400 text-[10px] font-black px-3 py-1 rounded-md border border-slate-700 uppercase tracking-[0.2em] shadow-sm">
           APP: {APP_VERSION}
         </span>
       </div>
 
       <div className="w-full max-w-[340px]">
-        <div className="bg-white px-8 pt-8 pb-6 rounded-[2rem] shadow-2xl border border-slate-100 space-y-6 text-center overflow-hidden">
+        <div className="bg-white px-8 pt-8 pb-6 rounded-xl shadow-2xl border border-slate-100 space-y-6 text-center overflow-hidden">
           <div className="space-y-1">
-            <h1 className="text-2xl font-black text-slate-800 tracking-tighter leading-tight">
+            <h1 className="text-2xl font-black text-slate-800 tracking-tighter leading-none">
               コミュニケーター育成<span className="text-sky-600">HUB</span>
             </h1>
           </div>
@@ -54,7 +53,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({
                 type="text"
                 value={name || ''}
                 onChange={(e) => onNameChange(e.target.value)}
-                className={`w-full py-4 px-5 bg-slate-50 border-2 ${error ? 'border-rose-400' : 'border-slate-100'} rounded-2xl text-slate-800 text-base focus:outline-none focus:border-sky-500 focus:bg-white transition-all font-black text-center shadow-inner placeholder:text-slate-300`}
+                className={`w-full py-4 px-5 bg-slate-50 border-2 ${error ? 'border-rose-400' : 'border-slate-100'} rounded-lg text-slate-800 text-base focus:outline-none focus:border-sky-500 focus:bg-white transition-all font-black text-center shadow-inner placeholder:text-slate-300`}
                 placeholder="氏名を入力"
                 disabled={isLoading}
                 onKeyPress={(e) => e.key === 'Enter' && onLogin()}
@@ -70,7 +69,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({
 
             <button
               onClick={onLogin}
-              className={`w-full py-4 rounded-2xl transition-all flex items-center justify-center gap-2 transform active:scale-95 shadow-lg font-black text-base ${
+              className={`w-full py-4 rounded-lg transition-all flex items-center justify-center gap-2 transform active:scale-95 shadow-lg font-black text-base ${
                 isLoading 
                 ? 'bg-sky-100 text-sky-400 cursor-not-allowed' 
                 : isNameEmpty

@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, useEffect } from 'react';
 import { Settings, Center, Scenario, MasterSetting } from '../types.ts';
 import { PlayIcon, SparklesIcon, LoadingIcon, ArrowLeftIcon } from './Icons.tsx';
@@ -18,11 +17,10 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ currentSettings, onStart,
   const [selectedDifficulty, setSelectedDifficulty] = useState<number | null>(null);
   const [isStarting, setIsStarting] = useState(false);
 
-  // displayFlag(C列)がTRUEのもののみを表示
+  // マスタの全センターを表示（displayFlag無視）
   const availableCenters = useMemo(() => {
     if (!masterSettings || !Array.isArray(masterSettings)) return [];
-    return masterSettings
-        .filter(s => s.displayFlag === true)
+    return [...masterSettings]
         .sort((a, b) => a.sortOrder - b.sortOrder)
         .map((s, idx) => ({
             abbr: s.abbreviation || s.name,
@@ -46,7 +44,6 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ currentSettings, onStart,
         return sCenter.includes(targetCenterAbbr);
     });
     const candidates = filteredScenarios.length > 0 ? filteredScenarios : scenarios;
-    // FIX: Added internalId, difficulty and personality to the default scenario object to match Scenario type
     const scenario: Scenario = candidates[Math.floor(Math.random() * candidates.length)] || { 
         id: 'dummy', internalId: 'dummy-internal', name: '全般的な問い合わせ', initialInquiry: '契約について聞きたい', center: '全般', smartphonePlan: '-', lightPlan: '-', difficulty: 3, personality: '一般的'
     };

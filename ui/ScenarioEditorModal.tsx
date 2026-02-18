@@ -33,8 +33,9 @@ const ScenarioEditorModal: React.FC<ScenarioEditorModalProps> = ({ onClose, onSa
     [masterSettings]
   );
 
+  // 初期値のセット
   useEffect(() => {
-    if (scenario) {
+    if (scenario && (scenario.id || scenario.internalId)) {
       setName(scenario.name || '');
       setInitialInquiry(scenario.initialInquiry || '');
       setDifficulty(Number(scenario.difficulty || 3));
@@ -42,13 +43,31 @@ const ScenarioEditorModal: React.FC<ScenarioEditorModalProps> = ({ onClose, onSa
       setSmartphonePlan(scenario.smartphonePlan || '');
       setLightPlan(scenario.lightPlan || '');
       setPersonality(scenario.personality || '');
+    } else {
+      // 新規作成時の初期化
+      setName('');
+      setInitialInquiry('');
+      setDifficulty(3);
+      setCenter('');
+      setSmartphonePlan('');
+      setLightPlan('');
+      setPersonality('');
     }
   }, [scenario]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (isSaving) return;
-    onSave({ ...scenario, name, initialInquiry, center, difficulty, smartphonePlan, lightPlan, personality } as any);
+    onSave({ 
+        ...scenario, 
+        name, 
+        initialInquiry, 
+        center, 
+        difficulty, 
+        smartphonePlan, 
+        lightPlan, 
+        personality: personality.trim() 
+    } as any);
   };
 
   const handleTriggerDelete = (e: React.MouseEvent) => {
@@ -113,6 +132,23 @@ const ScenarioEditorModal: React.FC<ScenarioEditorModalProps> = ({ onClose, onSa
                     <label className="text-xs font-black text-slate-400 uppercase tracking-widest px-2">光プラン</label>
                     <input type="text" value={lightPlan} onChange={e => setLightPlan(e.target.value)} className="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl font-bold text-base outline-none" />
                 </div>
+            </div>
+
+            <div className="space-y-2">
+                <label className="text-xs font-black text-slate-400 uppercase tracking-widest px-2">顧客の性質</label>
+                <select 
+                  value={personality} 
+                  onChange={e => setPersonality(e.target.value)} 
+                  className="w-full p-4 bg-slate-50 border-2 border-slate-100 rounded-2xl font-bold text-base focus:border-sky-500 outline-none transition-all cursor-pointer" 
+                  required
+                >
+                    <option value="">選択してください</option>
+                    {personalities.map((p, idx) => (
+                      <option key={`${p.name}-${idx}`} value={p.name}>
+                        {p.name}
+                      </option>
+                    ))}
+                </select>
             </div>
 
             <div className="space-y-3">

@@ -1,9 +1,9 @@
 /**
  * コミュニケーター育成HUB - Backend (Google Apps Script)
- * VERSION: V6.40.54 (CRITICAL_DELETE_FIX)
+ * VERSION: V6.40.55 (STABILITY_FIX)
  */
 
-var VERSION_STRING = "V6.40.54";
+var VERSION_STRING = "V6.40.55";
 var DEFAULT_SS_ID = '1DkyoKVZ6_iEY2WCQp_eLx3F_har_bCwkkkV-N1wdh6M';
 
 /**
@@ -70,15 +70,19 @@ function processAction(action, data, token) {
 
   switch (action) {
     case 'getSettings':
+      // 「性質」または「性質マスタ」の両方を試行
+      var personalityData = readListFromSheet(ss, '性質');
+      if (personalityData.length === 0) personalityData = readListFromSheet(ss, '性質マスタ');
+
       return {
         data: {
           scenarios: readSheetData(ss, 'シナリオ'),
           testQuestions: readSheetData(ss, 'テスト問題'),
           masterSettings: readSheetData(ss, 'センターマスタ'),
           trainees: readSheetData(ss, '研修生マスタ'),
-          ngWords: readSheetData(ss, 'NGワード').map(function(r){ return r.NGワード || r[0]; }),
-          faqTopics: readSheetData(ss, 'テストトピック').map(function(r){ return r.トピック || r[0]; }),
-          personalities: readSheetData(ss, '性質マスタ')
+          ngWords: readListFromSheet(ss, 'NGワード'),
+          faqTopics: readListFromSheet(ss, 'テストトピック'),
+          personalities: personalityData
         }
       };
 
@@ -116,6 +120,28 @@ function processAction(action, data, token) {
   }
 }
 
+/**
+ * リスト形式（単一列）のデータを読み込む。
+ * ヘッダーをスキップし、A列の値を文字列の配列として返す。
+ */
+function readListFromSheet(ss, name) {
+  var sheet = findSheet(ss, name);
+  if (!sheet) return [];
+  var values = sheet.getDataRange().getValues();
+  if (values.length < 1) return [];
+  
+  var results = [];
+  // 1行目はヘッダーとみなし、2行目から読み込むが、
+  // もし1行目しかない場合はその1行目をデータとして扱う
+  var startIndex = values.length > 1 ? 1 : 0;
+  
+  for (var i = startIndex; i < values.length; i++) {
+    var val = String(values[i][0] || "").trim();
+    if (val) results.push(val);
+  }
+  return results;
+}
+
 function readSheetData(ss, name) {
   var sheet = findSheet(ss, name);
   if (!sheet) return [];
@@ -128,7 +154,8 @@ function readSheetData(ss, name) {
   for (var i = 1; i < values.length; i++) {
     var obj = {};
     for (var j = 0; j < headers.length; j++) {
-      obj[headers[headers.length > j ? j : 0]] = values[i][j];
+      var key = headers[j] || "col_" + j;
+      obj[key] = values[i][j];
     }
     // A列をIDとして必ずセット
     obj.id = values[i][0];

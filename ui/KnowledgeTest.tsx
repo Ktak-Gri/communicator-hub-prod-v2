@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { ArrowLeftIcon, PlayIcon, LoadingIcon, InformationCircleIcon, SparklesIcon } from './Icons.tsx';
 import { MasterSetting, Center, TestQuestion } from '../types.ts';
@@ -20,9 +19,9 @@ const KnowledgeTest: React.FC<KnowledgeTestProps> = ({ masterSettings, onBack, c
   const { state, question, result, startTest, submitAnswer, reset } = useTestSession();
   const [userAnswer, setUserAnswer] = useState('');
   
-  // displayFlag(C列)がTRUEのもののみを表示
+  // マスタの全センターを表示
   const activeCenters = useMemo(() => {
-    return masterSettings.filter(s => s.displayFlag === true).sort((a, b) => a.sortOrder - b.sortOrder);
+    return [...masterSettings].sort((a, b) => a.sortOrder - b.sortOrder);
   }, [masterSettings]);
 
   const [selectedCenter, setSelectedCenter] = useState(() => {

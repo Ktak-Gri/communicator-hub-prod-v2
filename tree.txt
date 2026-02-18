@@ -1,0 +1,144 @@
+フォルダー パスの一覧
+ボリューム シリアル番号は ECC2-D8F6 です
+C:.
+|   .gitattributes
+|   .gitignore
+|   api.ts
+|   apiClient.ts
+|   App.tsx
+|   CONSOLE_COMMAND.js
+|   constants.ts
+|   development_log.md
+|   domain-learning.ts
+|   domain-master.ts
+|   domain-training.ts
+|   EMERGENCY_SYNC_ACTIVE_V53.txt
+|   favicon.png
+|   FORCE_STATE_REFRESH.txt
+|   FORCE_STATE_SYNC.js
+|   FORCE_SYNC_TRIGGER.md
+|   index.html
+|   index.tsx
+|   metadata.json
+|   OneOnOneHub.tsx
+|   package.json
+|   README.md
+|   server.js
+|   SUMMARY.md
+|   SYNC_COMMAND_RAW.txt
+|   SYNC_FORCE_V55.txt
+|   SYNC_PROTOCOL_V52.json
+|   SYNC_PULSE_V49.txt
+|   sync_recovery.txt
+|   SYNC_TRIGGER_V47.txt
+|   SYNC_WAKEUP_V48.txt
+|   tree.txt
+|   tsconfig.json
+|   types.ts
+|   ui-shared.tsx
+|   ui-view-admin.tsx
+|   ui-view-auth.tsx
+|   ui-view-home.tsx
+|   ui-view-learning.tsx
+|   ui-view-training.tsx
+|   UI_RECOVERY_V64.txt
+|   use-app-state.ts
+|   use-auth.ts
+|   VERSION_MANIFEST.json
+|   vite.config.ts
+|   [full_path_of_file_1]
+|   [full_path_of_file_2]
+|   
++---.vscode
+|       settings.json
+|       
++---components
+|       AdminDashboard.tsx
+|       AdminLoginModal.tsx
+|       App.tsx
+|       AutonomousSimulator.tsx
+|       BackendUpdateRequiredPage.tsx
+|       CenterRegistrationPage.tsx
+|       CenterSettingsModal.tsx
+|       CenterSummaryPage.tsx
+|       DeploymentGuide.tsx
+|       development_log.md
+|       FaqTopicsModal.tsx
+|       FeedbackModal.tsx
+|       FeedbackTest.tsx
+|       HistoryPage.tsx
+|       HomePage.tsx
+|       Icons.tsx
+|       InteractiveQuestioningTrainer.tsx
+|       KnowledgeTest.tsx
+|       LearningPage.tsx
+|       LoginScreen.tsx
+|       LogViewer.tsx
+|       MonorepoGuide.tsx
+|       NGWordsModal.tsx
+|       OneOnOneHub.tsx
+|       PreflightCheckPage.tsx
+|       QuestioningLogViewer.tsx
+|       RolePlayScreen.tsx
+|       ScenarioEditorModal.tsx
+|       SettingsPanel.tsx
+|       SpreadsheetTest.tsx
+|       TestQuestionEditorModal.tsx
+|       TestResultModal.tsx
+|       utils.ts
+|       VoiceQualityCheck.tsx
+|       
++---domain
+|       data-converter.ts
+|       
++---gas
+|       JSON-GSheet.js
+|       main.js
+|       
++---hooks
+|       useAdminDashboard.ts
+|       useAppActions.ts
+|       useAppInitializer.ts
+|       useAppLogic.ts
+|       useAuth.ts
+|       useAutonomousSimulator.ts
+|       useLogin.ts
+|       useOneOnOne.ts
+|       useQuestioningTrainer.ts
+|       useRolePlay.ts
+|       useRolePlaySession.ts
+|       useTestSession.ts
+|       
+\---ui
+        AdminDashboard.tsx
+        AdminLoginModal.tsx
+        AutonomousSimulator.tsx
+        BackendUpdateRequiredPage.tsx
+        CenterRegistrationPage.tsx
+        CenterSettingsModal.tsx
+        CenterSummaryPage.tsx
+        DeploymentGuide.tsx
+        FaqTopicsModal.tsx
+        FeedbackModal.tsx
+        FeedbackTest.tsx
+        HistoryPage.tsx
+        HomePage.tsx
+        Icons.tsx
+        InteractiveQuestioningTrainer.tsx
+        KnowledgeTest.tsx
+        LearningPage.tsx
+        LoginScreen.tsx
+        LogViewer.tsx
+        MonorepoGuide.tsx
+        NGWordsModal.tsx
+        OneOnOneHub.tsx
+        PreflightCheckPage.tsx
+        RolePlayScreen.tsx
+        ScenarioEditorModal.tsx
+        SettingsPanel.tsx
+        SpreadsheetTest.tsx
+        TestQuestionEditorModal.tsx
+        TestResultModal.tsx
+        utils.ts
+        Views.tsx
+        
