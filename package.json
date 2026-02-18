@@ -12,6 +12,24 @@
     "url": "https://github.com/Ktak-Gri/communicator-hub-prod/issues"
   },
   "homepage": "https://github.com/Ktak-Gri/communicator-hub-prod#readme",
-  "dependencies": {},
-  "devDependencies": {}
+  "main": "CONSOLE_COMMAND.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@google/genai": "^1.41.0",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "recharts": "^3.7.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^5.1.4",
+    "typescript": "^5.9.3",
+    "vite": "^7.3.1"
+  }
 }
