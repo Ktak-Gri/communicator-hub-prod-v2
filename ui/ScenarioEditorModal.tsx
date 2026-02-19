@@ -92,7 +92,7 @@ const ScenarioEditorModal: React.FC<ScenarioEditorModalProps> = ({ onClose, onSa
 
   return (
     <div className="fixed inset-0 bg-black/60 z-[200] flex items-center justify-center p-4 animate-fade-in" onClick={onClose}>
-      <div className="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[92vh] pointer-events-auto" onClick={e => e.stopPropagation()}>
+      <div className="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-2xl flex flex-col max-h-[90vh] pointer-events-auto overflow-y-auto" onClick={e => e.stopPropagation()}>
         <form onSubmit={handleSubmit} className="flex flex-col h-full">
           <div className="px-8 py-5 border-b flex justify-between items-center bg-white">
             <h3 className="text-lg font-black text-slate-800 tracking-tight leading-none">

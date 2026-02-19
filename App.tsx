@@ -34,7 +34,7 @@ export const App: React.FC = () => {
     }
 
     return (
-        <div className="min-h-screen bg-[#f8fafc] text-slate-900 font-sans selection:bg-sky-100">
+        <div className="h-full bg-[#f8fafc] text-slate-900 font-sans selection:bg-sky-100">
             {logic.page !== 'login' && logic.page !== 'preflight_error' && logic.page !== null && (
                 <Header logic={logic} />
             )}
