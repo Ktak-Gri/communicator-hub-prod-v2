@@ -103,7 +103,8 @@ export const LoginView = ({ logic }: { logic: any }) => {
 
 export const HomeView = ({ logic }: { logic: any }) => <HomePage onNavigate={(p: any) => logic.setPage(p)} />;
 
-export const AdminView = ({ logic }: { logic: any }) => (
+//export const AdminView = ({ logic }: { logic: any }) => (
+export const AdminView = ({ logic }: any) => (
   <AdminDashboard
     adminToken={logic.adminToken}
     onSync={logic.refresh}
@@ -124,8 +125,8 @@ export const AdminView = ({ logic }: { logic: any }) => (
     appSettings={{}}
     onUpdateAppSettings={() => {}}
     apiKey={null}
-    onLogout={logic.logout}
     personalities={logic.personalities}
+    onLogout={logic.logout}
   />
 );
 

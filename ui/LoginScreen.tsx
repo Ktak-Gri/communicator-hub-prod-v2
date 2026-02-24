@@ -56,7 +56,12 @@ const LoginScreen: React.FC<LoginScreenProps> = ({
                 className={`w-full py-4 px-5 bg-slate-50 border-2 ${error ? 'border-rose-400' : 'border-slate-100'} rounded-lg text-slate-800 text-base focus:outline-none focus:border-sky-500 focus:bg-white transition-all font-black text-center shadow-inner placeholder:text-slate-300`}
                 placeholder="氏名を入力"
                 disabled={isLoading}
-                onKeyPress={(e) => e.key === 'Enter' && onLogin()}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !isNameEmpty && !isLoading) {
+                    e.preventDefault();
+                    onLogin();
+                  }
+                }}
               />
               {error && (
                 <div className="mt-2 animate-fade-in">

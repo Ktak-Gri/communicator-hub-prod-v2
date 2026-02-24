@@ -2,14 +2,15 @@
 import React, { useState } from 'react';
 import { Button, Card, LoadingIcon } from './ui-shared.tsx';
 
-export const AdminView = ({ auth, state }: any) => {
-  const [tab, setTab] = useState('scenarios');
+//export const AdminView = ({ auth, state }: any) => {
+export const AdminView = ({ auth, state, onLogout }: any) => {
+    const [tab, setTab] = useState('scenarios');
   return (
     <div className="max-w-7xl mx-auto py-8 animate-fade-in space-y-8">
         <div className="bg-white p-8 rounded-[3rem] shadow-2xl border border-slate-100">
             <div className="flex justify-between items-center mb-10">
                 <div><h2 className="text-4xl font-black tracking-tighter">管理ダッシュボード</h2><p className="text-slate-400 text-xs font-bold uppercase tracking-widest mt-1">System Administrator Mode</p></div>
-                <Button onClick={auth.logout} variant="secondary">管理者終了</Button>
+                <Button onClick={onLogout} variant="secondary">管理者終了</Button>
             </div>
             <nav className="flex gap-4 border-b border-slate-100 mb-8 overflow-x-auto">
                 {['scenarios', 'tests', 'masters', 'logs'].map(t => (

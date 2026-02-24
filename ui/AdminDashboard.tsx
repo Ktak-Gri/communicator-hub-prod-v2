@@ -40,7 +40,7 @@ interface AdminDashboardProps {
   personalities: MasterDataItem[];
 }
 
-const AdminDashboard: React.FC<AdminDashboardProps> = (props) => {
+  const AdminDashboard: React.FC<AdminDashboardProps> = (props) => {
   const { activeTab, setActiveTab, isSaving, saveScenario, saveTest, deleteItem } = useAdminDashboard(props.adminToken);
 
   const [isScenarioModalOpen, setIsScenarioModalOpen] = useState(false);

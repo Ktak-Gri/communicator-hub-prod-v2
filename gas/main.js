@@ -114,6 +114,15 @@ function processAction(action, data, token) {
     case 'deleteTestQuestion': return deleteRowById(ss, 'テスト問題', data.id);
     case 'saveRolePlayLog': appendToLog(ss, 'ロールプレイングログ', data); return { status: 'success' };
     case 'saveTestLog': appendToLog(ss, 'テストログ', data); return { status: 'success' };
+    case 'getUserHistoryRolePlay':
+      return {
+        data: getUserHistory(ss, 'ロールプレイングログ', data)
+      };
+
+    case 'getUserHistoryTest':
+      return {
+        data: getUserHistory(ss, 'テストログ', data)
+      };
 
     default:
       throw new Error("不明なアクション: " + action);
@@ -197,4 +206,34 @@ function appendToLog(ss, sheetName, data) {
     return (typeof val === 'object') ? JSON.stringify(val) : val;
   });
   sheet.appendRow(row);
+}
+
+function getUserHistory(ss, sheetName, data) {
+  var sheet = findSheet(ss, sheetName);
+  if (!sheet) return [];
+
+  var values = sheet.getDataRange().getValues();
+  if (values.length < 2) return [];
+
+  var headers = values[0];
+  var results = [];
+
+  var traineeKey = normalizeId(data.traineeName);
+  var centerKey = normalizeId(data.center);
+
+  for (var i = 1; i < values.length; i++) {
+    var rowObj = {};
+    for (var j = 0; j < headers.length; j++) {
+      rowObj[headers[j]] = values[i][j];
+    }
+
+    var rowTrainee = normalizeId(rowObj.traineeName || rowObj.研修生名 || "");
+    var rowCenter = normalizeId(rowObj.center || rowObj.センター || "");
+
+    if (rowTrainee === traineeKey && rowCenter === centerKey) {
+      results.push(rowObj);
+    }
+  }
+
+  return results;
 }

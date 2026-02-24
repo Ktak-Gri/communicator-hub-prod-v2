@@ -1,4 +1,8 @@
+let sessionRefreshHandler: (() => void) | null = null;
 
+export const attachSessionRefresh = (fn: () => void) => {
+  sessionRefreshHandler = fn;
+};
 import { GoogleGenAI, Type } from "@google/genai";
 import { WEB_APP_URL } from './constants.ts';
 
@@ -43,12 +47,17 @@ const callJsonp = async (action: string, data: any = {}, token: string | null = 
       delete (window as any)[cb];
     };
 
-    (window as any)[cb] = (res: any) => {
-      cleanup();
-      if (res && res.version) lastBackendVersion = res.version;
-      if (res && res.status === 'success') resolve(res);
-      else reject(new Error(res?.error || "サーバーエラーが発生しました"));
-    };
+  (window as any)[cb] = (res: any) => {
+    cleanup();
+    if (res && res.version) lastBackendVersion = res.version;
+
+    if (res && res.status === 'success') {
+      if (sessionRefreshHandler) sessionRefreshHandler(); // ←ここ追加
+      resolve(res);
+    } else {
+      reject(new Error(res?.error || "サーバーエラーが発生しました"));
+    }
+  };
 
     script.onerror = () => {
       cleanup();

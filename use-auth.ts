@@ -31,11 +31,18 @@ export const useAuth = () => {
     } catch (e) { return { success: false }; }
   }, []);
 
+ // const logout = useCallback(() => {
+ //   setTraineeName('');
+ //   setAdminToken(null);
+ //   localStorage.clear();
+ // }, []);
+
   const logout = useCallback(() => {
-    setTraineeName('');
-    setAdminToken(null);
-    localStorage.clear();
-  }, []);
+  console.log("AUTH LOGOUT CALLED");
+  setTraineeName('');
+  setAdminToken(null);
+  localStorage.clear();
+}, []);
 
   return { traineeName, setTraineeName, adminToken, setAdminToken, login, adminLogin, logout };
 };

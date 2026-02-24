@@ -57,7 +57,17 @@ export const useAppState = (initialPage: ActivePage) => {
   };
 
   return { 
-    page, setPage, isLoading, error, masters, scenarios, questions, trainees, 
-    currentCenter, updateCenter, refresh: fetchData 
+    page, 
+    setPage, 
+    isLoading, 
+    error, 
+    masters, 
+    scenarios, 
+    questions, 
+    trainees, 
+    currentCenter, 
+    updateCenter, 
+    refresh: fetchData,
+    logout: auth.logout,   // ← これ追加
   };
 };
