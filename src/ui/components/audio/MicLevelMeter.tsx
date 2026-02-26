@@ -1,4 +1,29 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
+
+import {
+  Scenario,
+  TranscriptItem
+} from "../../types";
+
+import {
+  ArrowLeftIcon,
+  LoadingIcon,
+  PhoneDownIcon,
+  PhoneIcon,
+  WifiOffIcon
+} from "../components/icons/Icons";
+
+import { MicLevelMeter }
+  from "../components/audio/MicLevelMeter";
+
+import { useRolePlaySession }
+  from "../../hooks/useRolePlaySession";
+
+import { useMicLevel }
+  from "../../hooks/useMicLevel";
+
+import { useVAD }
+  from "../../hooks/useVAD";
 
 type Props = {
   level: number;
