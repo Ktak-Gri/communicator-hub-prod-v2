@@ -1,6 +1,9 @@
 import React from 'react';
 import { TestHistoryItem } from '../../types.ts';
-import { CloseIcon, CheckCircleIcon } from './Icons.tsx';
+import {
+  CloseIcon,
+  CheckCircleIcon
+} from "../icons/Icons";
 
 interface TestResultModalProps {
   result: TestHistoryItem;

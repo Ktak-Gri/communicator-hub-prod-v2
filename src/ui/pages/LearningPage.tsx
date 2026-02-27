@@ -1,13 +1,18 @@
 
 import React from 'react';
-import { PencilIcon, ArrowLeftIcon, SparklesIcon, BookOpenIcon } from './Icons.tsx';
+import { 
+    PencilIcon, 
+    ArrowLeftIcon, 
+    SparklesIcon, 
+    BookOpenIcon 
+} from "../components/icons/Icons";
 import { ActivePage } from '../../types.ts';
 
-const LearningPage: React.FC<{ onNavigate: (page: ActivePage) => void }> = ({ onNavigate }) => {
+const LearningPage: React.FC<{ Navigate: (page: ActivePage) => void }> = ({ Navigate }) => {
   return (
     <div className="max-w-4xl mx-auto space-y-6 animate-fade-in pb-10">
         <div className="flex flex-row items-center">
-            <button onClick={() => onNavigate('home')} className="flex flex-row items-center gap-1.5 text-xs font-black text-slate-400 hover:text-sky-600 transition-all group px-2 whitespace-nowrap">
+            <button onClick={() => Navigate('home')} className="flex flex-row items-center gap-1.5 text-xs font-black text-slate-400 hover:text-sky-600 transition-all group px-2 whitespace-nowrap">
                 <ArrowLeftIcon className="h-4 w-4 group-hover:-translate-x-1 transition-transform" /> 
                 <span className="leading-none">← 戻る</span>
             </button>

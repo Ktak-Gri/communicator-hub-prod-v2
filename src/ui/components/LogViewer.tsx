@@ -2,8 +2,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { MasterSetting, Trainee } from '../../types.ts';
 import { requestWithJsonp } from '../../api.ts';
-import FeedbackModal from './FeedbackModal.tsx';
-import TestResultModal from './TestResultModal.tsx';
+import FeedbackModal from "../components/modal/FeedbackModal";
+import TestResultModal from "../components/modal/TestResultModal";
 import { LoadingIcon } from './Icons.tsx';
 
 interface LogViewerProps {

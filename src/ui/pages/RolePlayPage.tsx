@@ -13,30 +13,15 @@ import {
   WifiOffIcon
 } from "../components/icons/Icons";
 
-import { MicLevelMeter }
-  from "../components/audio/MicLevelMeter";
+import { MicLevelMeter } from "../components/audio/MicLevelMeter";
 
-import { useRolePlaySession }
-  from "../../hooks/useRolePlaySession";
-
-import { useMicLevel }
-  from "../../hooks/useMicLevel";
-
-import { useVAD }
-  from "../../hooks/useVAD";
-
-/* =========================
-   ENV DEBUG（DEVのみ）
-========================= */
-if (import.meta.env.DEV) {
-  console.log("ENV:", import.meta.env);
-}
+import { useRolePlaySession } from "../../hooks/useRolePlaySession";
+import { useMicLevel } from "../../hooks/useMicLevel";
+import { useVAD } from "../../hooks/useVAD";
 
 interface RolePlayScreenProps {
   scenario: Scenario;
   traineeName: string;
-  center: string | null;
-  apiKey: string | null;
   onBack: () => void;
   onComplete: (
     transcript: TranscriptItem[],
@@ -46,7 +31,7 @@ interface RolePlayScreenProps {
   isAnalyzing: boolean;
 }
 
-const RolePlayScreen: React.FC<RolePlayScreenProps> = ({
+const RolePlayPage: React.FC<RolePlayScreenProps> = ({
   scenario,
   traineeName,
   onBack,
@@ -63,68 +48,59 @@ const RolePlayScreen: React.FC<RolePlayScreenProps> = ({
   } = useRolePlaySession(scenario, traineeName);
 
   const transcriptEndRef = useRef<HTMLDivElement>(null);
-  /* =====================================================
-     ✅ 状態抽象化（★★★★★ 超重要 ★★★★★）
 
-     UIは「connected」などの文字列を
-     直接見るべきではない。
-
-     UIが知りたいのは：
-       → 通話がアクティブか？
-
-     将来 status が増えても
-     ここ1か所だけ修正すればよい。
-  ===================================================== */
+  /* ===============================
+     通話状態抽象化
+  =============================== */
   const isCallActive =
-    status === 'connected' ||
-    status === 'analyzing';
+    status === "connected" ||
+    status === "analyzing";
 
-  /* ======================
+  /* ===============================
      Mic Level
-  ====================== */
+  =============================== */
   const micLevel = useMicLevel(isCallActive);
 
-  /* ======================
-     ✅ VAD（発話検知）
-  ====================== */
+  /* ===============================
+     VAD
+  =============================== */
   const { speaking } = useVAD(micLevel);
 
   useEffect(() => {
     transcriptEndRef.current?.scrollIntoView({
-      behavior: 'smooth'
+      behavior: "smooth"
     });
   }, [messages]);
 
   return (
     <div className="flex flex-col h-[82vh] relative">
 
-      {/* ✅ VAD表示 */}
-      <div style={{ position:'absolute',top:10,right:10 }}>
-        {speaking ? '🎤 Speaking' : '🤫 Silent'}
+      {/* ===== VAD ===== */}
+      <div style={{ position: "absolute", top: 10, right: 10 }}>
+        {speaking ? "🎤 Speaking" : "🤫 Silent"}
       </div>
 
-      {/* ================= HEADER ================= */}
+      {/* ===== HEADER ===== */}
       <div className="flex justify-between items-center px-6 py-4 bg-slate-950 border-b border-slate-800">
 
         <div>
           <button
             onClick={onBack}
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 text-white"
           >
             <ArrowLeftIcon />
             戻る
           </button>
 
-          <h2 className="text-lg font-semibold">
-            {scenario.name}
+          <h2 className="text-lg font-semibold text-white">
+            {scenario.title}
           </h2>
         </div>
 
-        {/* ✅ 通話アクティブ時のみ終了ボタン */}
         {isCallActive && (
           <button
             onClick={async () => {
-              setStatus('analyzing');
+              setStatus("analyzing");
 
               try {
                 await onComplete(
@@ -134,11 +110,11 @@ const RolePlayScreen: React.FC<RolePlayScreenProps> = ({
                 );
               } catch (e) {
                 console.error(e);
-                setStatus('connected');
+                setStatus("connected");
               }
             }}
             disabled={isAnalyzing}
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 text-white"
           >
             {isAnalyzing
               ? <LoadingIcon />
@@ -148,7 +124,7 @@ const RolePlayScreen: React.FC<RolePlayScreenProps> = ({
         )}
       </div>
 
-      {/* ================= MIC ================= */}
+      {/* ===== MIC ===== */}
       {isCallActive && (
         <div className="px-6 py-3 bg-slate-900 border-b border-slate-800">
           <div className="flex items-center gap-3">
@@ -165,10 +141,10 @@ const RolePlayScreen: React.FC<RolePlayScreenProps> = ({
         </div>
       )}
 
-      {/* ================= BODY ================= */}
+      {/* ===== BODY ===== */}
       <div className="flex-1 relative">
 
-        {status === 'ringing' && (
+        {status === "ringing" && (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-6">
             <PhoneIcon />
 
@@ -181,7 +157,7 @@ const RolePlayScreen: React.FC<RolePlayScreenProps> = ({
           </div>
         )}
 
-        {status === 'error' && (
+        {status === "error" && (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-4">
             <WifiOffIcon />
             <p>接続エラー</p>
@@ -196,11 +172,11 @@ const RolePlayScreen: React.FC<RolePlayScreenProps> = ({
           <div className="p-6 overflow-y-auto">
 
             {messages.map((msg, idx) => (
-              <div key={idx} className="mb-4">
+              <div key={idx} className="mb-4 text-white">
                 <b>
-                  {msg.speaker === 'user'
+                  {msg.speaker === "user"
                     ? traineeName
-                    : 'CUSTOMER'}
+                    : "CUSTOMER"}
                 </b>
                 <div>{msg.text}</div>
               </div>
@@ -215,4 +191,4 @@ const RolePlayScreen: React.FC<RolePlayScreenProps> = ({
   );
 };
 
-export default RolePlayScreen;
+export default RolePlayPage;

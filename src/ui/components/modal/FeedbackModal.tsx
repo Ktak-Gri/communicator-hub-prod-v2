@@ -2,7 +2,7 @@
 import React, { useMemo, useState } from 'react';
 import { ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar } from 'recharts';
 import { FeedbackData } from '../../types.ts';
-import { CloseIcon, LightBulbIcon } from './Icons.tsx';
+import { CloseIcon, LightBulbIcon } from "../icons/Icons";
 
 const RADAR_CRITERIA = [
   { key: 'listeningSkill', name: '傾聴力' },

@@ -99,7 +99,7 @@ type CreateComponentProps<T extends RouteInfo, RSCEnabled extends boolean> = {
      * {@link https://reactrouter.com/start/framework/routing#dynamic-segments Dynamic route params} for the current route.
      * @example
      * // app/routes.ts
-     * route("teams/:teamId", "./team.tsx"),
+     * route("teams/:teamId", "./team"),
      *
      * // app/team.tsx
      * export default function Component({
@@ -128,7 +128,7 @@ type CreateErrorBoundaryProps<T extends RouteInfo, RSCEnabled extends boolean> =
      * {@link https://reactrouter.com/start/framework/routing#dynamic-segments Dynamic route params} for the current route.
      * @example
      * // app/routes.ts
-     * route("teams/:teamId", "./team.tsx"),
+     * route("teams/:teamId", "./team"),
      *
      * // app/team.tsx
      * export function ErrorBoundary({

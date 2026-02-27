@@ -1,4 +1,3 @@
-import React from "react";
 import { useAppState } from "./state/use-app-state";
 
 import HomePage from "./ui/pages/HomePage";
@@ -8,31 +7,53 @@ import HistoryPage from "./ui/pages/HistoryPage";
 import OneOnOneHub from "./ui/pages/OneOnOneHub";
 
 function App() {
-  const app = useAppState("home");
+  // ✅ アプリ中枢State取得
+  const { page, navigate } = useAppState();
 
-  if (app.isLoading) {
-    return <div>Loading...</div>;
-  }
+  // ✅ 表示画面コンテナ
+  let screen: React.ReactNode = null;
 
-  switch (app.page) {
+  // ✅ 画面制御（Router代替）
+  switch (page) {
+    case "login":
+      screen = (
+        <div className="flex h-screen items-center justify-center bg-gray-100">
+          <button
+            onClick={() => navigate("home")}
+            className="px-6 py-3 rounded-lg bg-blue-500 text-white text-lg"
+          >
+            Login
+          </button>
+        </div>
+      );
+      break;
+
     case "home":
-      return <HomePage {...app} />;
+      screen = <HomePage navigate={navigate} />;
+      break;
 
     case "roleplay":
-      return <RolePlayPage {...app} />;
+      screen = <RolePlayPage navigate={navigate} />;
+      break;
 
     case "learning":
-      return <LearningPage {...app} />;
+      screen = <LearningPage navigate={navigate} />;
+      break;
 
     case "history":
-      return <HistoryPage {...app} />;
+      screen = <HistoryPage navigate={navigate} />;
+      break;
 
-    case "one-on-one":
-      return <OneOnOneHub {...app} />;
+    case "oneonone":
+      screen = <OneOnOneHub navigate={navigate} />;
+      break;
 
     default:
-      return <div>Unknown Page</div>;
+      screen = <div>Unknown Screen</div>;
   }
+
+  // ✅ 単一return（超重要）
+  return screen;
 }
 
 export default App;

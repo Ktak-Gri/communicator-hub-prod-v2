@@ -1,51 +1,30 @@
-import React, { useEffect, useRef } from "react";
+import React from "react";
 
-import {
-  Scenario,
-  TranscriptItem
-} from "../../types";
-
-import {
-  ArrowLeftIcon,
-  LoadingIcon,
-  PhoneDownIcon,
-  PhoneIcon,
-  WifiOffIcon
-} from "../components/icons/Icons";
-
-import { MicLevelMeter }
-  from "../components/audio/MicLevelMeter";
-
-import { useRolePlaySession }
-  from "../../hooks/useRolePlaySession";
-
-import { useMicLevel }
-  from "../../hooks/useMicLevel";
-
-import { useVAD }
-  from "../../hooks/useVAD";
-
-type Props = {
-  level: number;
+type MicLevelMeterProps = {
+  level: number; // 0〜1 想定
 };
 
-export const MicLevelMeter: React.FC<Props> = ({ level }) => {
+export const MicLevelMeter: React.FC<MicLevelMeterProps> = ({ level }) => {
+
+  // 安全クランプ（暴走防止）
+  const safeLevel = Math.max(0, Math.min(level, 1));
+
   return (
     <div
       style={{
-        width: "300px",
-        height: "16px",
-        background: "#e5e7eb",
+        width: "100%",
+        height: "14px",
+        backgroundColor: "#1f2937",
         borderRadius: "8px",
-        overflow: "hidden",
+        overflow: "hidden"
       }}
     >
       <div
         style={{
-          width: `${Math.min(level * 100, 100)}%`,
+          width: `${safeLevel * 100}%`,
           height: "100%",
-          background: "#22c55e",
-          transition: "width 0.1s linear",
+          background: "linear-gradient(90deg,#22c55e,#4ade80)",
+          transition: "width 0.08s linear"
         }}
       />
     </div>

@@ -1,6 +1,6 @@
 
-import { GoogleGenAI, Type } from "@google/genai";
-import { WEB_APP_URL } from './constants.ts';
+import { GoogleGenAI } from "@google/genai";
+import { WEB_APP_URL } from "../constants";
 
 let lastBackendVersion: string | null = null;
 export const getBackendVersion = () => lastBackendVersion;

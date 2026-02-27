@@ -2,8 +2,8 @@ import React, { useState, useEffect, useCallback } from "react";
 import { Center, Scenario } from "../../types";
 import { requestWithJsonp } from "../../api/api";
 import { LoadingIcon, ArrowLeftIcon }  from "../components/icons/Icons";
-import FeedbackModal  from "../components/modal/FeedbackModal";
-import TestResultModal  from "../components/modal/TestResultModal";
+import FeedbackModal from "../components/modal/FeedbackModal";
+import TestResultModal from "../components/modal/TestResultModal";
 
 const processRawLogs = (rawData: { rows: any[] }, type: string): any[] => {
     if (!rawData || !Array.isArray(rawData.rows)) return [];
