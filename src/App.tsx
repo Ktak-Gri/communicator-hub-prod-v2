@@ -1,5 +1,6 @@
 import { useAppState } from "./state/use-app-state";
 
+import LoginPage from "./ui/pages/LoginPage";
 import HomePage from "./ui/pages/HomePage";
 import RolePlayPage from "./ui/pages/RolePlayPage";
 import LearningPage from "./ui/pages/LearningPage";
@@ -16,16 +17,7 @@ function App() {
   // ✅ 画面制御（Router代替）
   switch (page) {
     case "login":
-      screen = (
-        <div className="flex h-screen items-center justify-center bg-gray-100">
-          <button
-            onClick={() => navigate("home")}
-            className="px-6 py-3 rounded-lg bg-blue-500 text-white text-lg"
-          >
-            Login
-          </button>
-        </div>
-      );
+      screen = <LoginPage navigate={navigate} />;
       break;
 
     case "home":

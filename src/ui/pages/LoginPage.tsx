@@ -1,13 +1,19 @@
 import React from "react";
+import { ActivePage } from "../../types";
 
-const LoginPage = ({ setPage }: any) => {
+type Props = {
+  navigate: (page: ActivePage) => void;
+};
+
+const LoginPage: React.FC<Props> = ({ navigate }) => {
+
   return (
     <div className="flex h-screen items-center justify-center">
       <button
-        onClick={() => setPage("home")}
-        className="px-6 py-3 bg-sky-600 text-white rounded-xl"
+        onClick={() => navigate("home")}
+        className="px-6 py-3 bg-blue-500 text-white rounded-lg"
       >
-        ログイン（仮）
+        Login
       </button>
     </div>
   );

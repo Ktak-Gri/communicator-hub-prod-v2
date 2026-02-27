@@ -1,32 +1,116 @@
-import { useState, useRef } from "react";
+import { useEffect, useRef } from "react";
 
-export function useRolePlaySession() {
+/**
+ * ===============================
+ * 🔒 GLOBAL CONNECTION LOCK
+ * ===============================
+ * アプリ全体でAI接続を1本に固定
+ */
+const globalSessionRef = {
+  connected: false
+};
 
-  const [status, setStatus] = useState("idle");
-  const [micLevel, setMicLevel] = useState(0);
+type Options = {
+  enabled: boolean;
+  onConnecting?: () => void;
+  onConnected?: () => void;
+  onAIThinking?: () => void;
+  onAISpeaking?: () => void;
+  onIdle?: () => void;
+};
 
-  const connectedRef = useRef(false);
+export const useRolePlaySession = ({
+  enabled,
+  onConnecting,
+  onConnected,
+  onAIThinking,
+  onAISpeaking,
+  onIdle
+}: Options) => {
 
-  const start = async () => {
-    if (connectedRef.current) return;
+  const sessionRef = useRef<any>(null);
 
-    connectedRef.current = true;
-    setStatus("connected");
+  /**
+   * ===============================
+   * CONNECT
+   * ===============================
+   */
+  useEffect(() => {
 
-    // 既存 connect 処理
-  };
+    if (!enabled) return;
 
-  const stop = async () => {
-    connectedRef.current = false;
-    setStatus("stopped");
+    /**
+     * 🚨 二重接続完全防止
+     */
+    if (globalSessionRef.connected) {
+      console.log("⚠ Session already connected");
+      return;
+    }
 
-    // disconnect
-  };
+    const connect = async () => {
+
+      try {
+        onConnecting?.();
+
+        console.log("🔄 Connecting AI Session...");
+
+        /**
+         * =====================
+         * TODO:
+         * Gemini Live 接続処理
+         * WebRTC / WS 接続をここへ
+         * =====================
+         */
+
+        // ---- MOCK CONNECT ----
+        await new Promise(r => setTimeout(r, 800));
+
+        sessionRef.current = {};
+
+        globalSessionRef.connected = true;
+
+        console.log("✅ AI Connected");
+
+        onConnected?.();
+
+        /**
+         * ---- MOCK STATE LOOP ----
+         * （後でGeminiイベントへ置換）
+         */
+        setTimeout(() => onAIThinking?.(), 2000);
+        setTimeout(() => onAISpeaking?.(), 3500);
+        setTimeout(() => onIdle?.(), 6000);
+
+      } catch (err) {
+        console.error("Connection failed", err);
+      }
+    };
+
+    connect();
+
+    /**
+     * ===============================
+     * CLEANUP
+     * ===============================
+     */
+    return () => {
+
+      console.log("🧹 Session cleanup");
+
+      if (sessionRef.current) {
+        /**
+         * TODO:
+         * Gemini disconnect
+         */
+        sessionRef.current = null;
+      }
+
+      globalSessionRef.connected = false;
+    };
+
+  }, [enabled]);
 
   return {
-    status,
-    micLevel,
-    onStart: start,
-    onStop: stop,
+    connected: globalSessionRef.connected
   };
-}
+};

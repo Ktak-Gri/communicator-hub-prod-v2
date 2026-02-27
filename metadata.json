@@ -1,9 +1,0 @@
-{
-  "requestFramePermissions": [
-    "camera",
-    "microphone"
-  ],
-  "name": "communicator-hub-prod",
-  "displayName": "コミュニケーター育成HUB PRO",
-  "description": "Enterprise AI Training Solution - Production Build"
-}

@@ -1,17 +1,13 @@
-export const useAppState = (
-  initialPage: ActivePage = "login"
-) => {
+import { useState } from "react";
+import { ActivePage } from "../types";
+
+export const useAppState = () => {
 
   const [page, setPage] =
-    useState<ActivePage>(initialPage);
-
-  const [isLoading, setIsLoading] =
-    useState(false);
+    useState<ActivePage>("login");
 
   return {
     page,
     navigate: setPage,
-    isLoading,
-    setIsLoading,
   };
 };
