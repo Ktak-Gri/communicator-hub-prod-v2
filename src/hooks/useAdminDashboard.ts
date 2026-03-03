@@ -24,7 +24,7 @@ export const useAdminDashboard = (adminToken: string | null) => {
     setIsSaving(true);
     try {
       const targetId = normalizeId(data.id);
-      let nextScenarios = [...scenarios];
+      const nextScenarios = [...scenarios];
       const index = nextScenarios.findIndex(s => normalizeId(s.id) === targetId);
 
       if (index !== -1) {
@@ -53,7 +53,7 @@ export const useAdminDashboard = (adminToken: string | null) => {
     setIsSaving(true);
     try {
       const targetId = normalizeId(data.id);
-      let nextTests = [...testQuestions];
+      const nextTests = [...testQuestions];
       const index = nextTests.findIndex(t => normalizeId(t.id) === targetId);
 
       if (index !== -1) {

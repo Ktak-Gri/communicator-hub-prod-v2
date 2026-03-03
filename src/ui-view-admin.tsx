@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Button, Card, LoadingIcon } from './ui-shared.tsx';
+import { Button } from './ui-shared.tsx';
 
 export const AdminView = ({ auth, state }: any) => {
   const [tab, setTab] = useState('scenarios');

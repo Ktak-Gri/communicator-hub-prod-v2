@@ -1,6 +1,5 @@
 import React from 'react';
-import { GlobeAltIcon, ArrowPathIcon, CheckCircleIcon, ClipboardIcon, ShieldCheckIcon } from './Icons.tsx';
-import { WEB_APP_URL, SPREADSHEET_ID, APP_VERSION, REQUIRED_BACKEND_VERSION } from '../constants.ts';
+import { GlobeAltIcon } from './Icons.tsx';
 
 const DeploymentGuide: React.FC = () => {
     return (

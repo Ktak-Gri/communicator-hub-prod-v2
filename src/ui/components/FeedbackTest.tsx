@@ -1,8 +1,6 @@
 
 import React, { useState } from 'react';
-import { LoadingIcon, CheckCircleIcon, WifiOffIcon, SparklesIcon } from './Icons.tsx';
 import { generateAiContentAsync } from '../../api.ts';
-import { Persona } from '../../types.ts';
 
 interface FeedbackTestProps {
   adminToken: string | null;

@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { WifiOffIcon, InformationCircleIcon, Cog6ToothIcon } from './Icons.tsx';
+import { WifiOffIcon, Cog6ToothIcon } from './Icons.tsx';
 
 interface Props {
   backendVersion: string | null;

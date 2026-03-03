@@ -1,71 +1,91 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from "react";
 
-export const useMicLevel = (active: boolean) => {
+type Options = {
+  enabled: boolean;
+};
+
+export const useMicLevel = ({ enabled }: Options) => {
 
   const [level, setLevel] = useState(0);
 
   const audioContextRef = useRef<AudioContext | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
-  const rafRef = useRef<number>();
+  const dataArrayRef = useRef<Uint8Array | null>(null);
+  const animationRef = useRef<number>();
 
   useEffect(() => {
-    if (!active) return;
+
+    if (!enabled) {
+      setLevel(0);
+      return;
+    }
 
     let stream: MediaStream;
 
     const init = async () => {
-      stream = await navigator.mediaDevices.getUserMedia({
-        audio: true
-      });
 
-      const audioContext = new AudioContext();
-      const analyser = audioContext.createAnalyser();
+      try {
 
-      analyser.fftSize = 512;
+        stream = await navigator.mediaDevices.getUserMedia({
+          audio: true
+        });
 
-      const source =
-        audioContext.createMediaStreamSource(stream);
+        const audioContext = new AudioContext();
+        const analyser = audioContext.createAnalyser();
 
-      source.connect(analyser);
+        analyser.fftSize = 256;
 
-      const data =
-        new Uint8Array(analyser.frequencyBinCount);
+        const source =
+          audioContext.createMediaStreamSource(stream);
 
-      audioContextRef.current = audioContext;
-      analyserRef.current = analyser;
+        source.connect(analyser);
 
-      const detect = () => {
+        const bufferLength = analyser.frequencyBinCount;
+        const dataArray = new Uint8Array(bufferLength);
 
-        analyser.getByteTimeDomainData(data);
+        audioContextRef.current = audioContext;
+        analyserRef.current = analyser;
+        dataArrayRef.current = dataArray;
 
-        let sum = 0;
+        const update = () => {
 
-        for (let i = 0; i < data.length; i++) {
-          const v = (data[i] - 128) / 128;
-          sum += v * v;
-        }
+          analyser.getByteTimeDomainData(dataArray);
 
-        const rms = Math.sqrt(sum / data.length);
+          let sum = 0;
 
-        setLevel(rms);
+          for (let i = 0; i < bufferLength; i++) {
+            const v = (dataArray[i] - 128) / 128;
+            sum += v * v;
+          }
 
-        rafRef.current =
-          requestAnimationFrame(detect);
-      };
+          const rms = Math.sqrt(sum / bufferLength);
 
-      detect();
+          setLevel(Math.min(100, rms * 200));
+
+          animationRef.current =
+            requestAnimationFrame(update);
+        };
+
+        update();
+
+      } catch (err) {
+        console.error("Mic access error:", err);
+      }
     };
 
     init();
 
     return () => {
-      if (rafRef.current)
-        cancelAnimationFrame(rafRef.current);
+
+      if (animationRef.current)
+        cancelAnimationFrame(animationRef.current);
 
       audioContextRef.current?.close();
+
+      stream?.getTracks().forEach(t => t.stop());
     };
 
-  }, [active]);
+  }, [enabled]);
 
-  return level;
+  return { level };
 };

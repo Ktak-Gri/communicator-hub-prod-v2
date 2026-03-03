@@ -1,8 +1,6 @@
 
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import { Scenario, SimulationResult } from '../types.ts';
-import { apiClient } from '../apiClient.ts';
-import { generateAiContentAsync } from '../../api.ts';
 
 export const useAutonomousSimulator = (scenarios: Scenario[]) => {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);

@@ -1,29 +1,44 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from "react";
 
-export const useVAD = (
-  level: number,
-  threshold = 0.05,
-  silenceDelay = 500
-) => {
+type Options = {
+  enabled: boolean;
+  level?: number;
+  threshold?: number;
+  onSpeechStart?: () => void;
+  onSpeechEnd?: () => void;
+};
 
-  const [speaking, setSpeaking] = useState(false);
-  const lastSpeechTimeRef = useRef(0);
+export const useVAD = ({
+  enabled,
+  level = 0,
+  threshold = 8,
+  onSpeechStart,
+  onSpeechEnd
+}: Options) => {
+
+  const speakingRef = useRef(false);
+  const silenceTimer = useRef<number>();
 
   useEffect(() => {
 
-    const now = performance.now();
+    if (!enabled) return;
 
     if (level > threshold) {
-      lastSpeechTimeRef.current = now;
-      setSpeaking(true);
-      return;
+
+      if (!speakingRef.current) {
+        speakingRef.current = true;
+        onSpeechStart?.();
+      }
+
+      if (silenceTimer.current) {
+        clearTimeout(silenceTimer.current);
+      }
+
+      silenceTimer.current = window.setTimeout(() => {
+        speakingRef.current = false;
+        onSpeechEnd?.();
+      }, 600);
     }
 
-    if (now - lastSpeechTimeRef.current > silenceDelay) {
-      setSpeaking(false);
-    }
-
-  }, [level, threshold, silenceDelay]);
-
-  return { speaking };
+  }, [level, enabled]);
 };

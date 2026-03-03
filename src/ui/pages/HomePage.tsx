@@ -3,8 +3,6 @@ import {
   HeadsetIcon,
   BookOpenIcon,
   HistoryIcon,
-  UserCircleIcon,
-  GlobeAltIcon,
   PhoneIcon
 } from "../components/icons/Icons";
 import { ActivePage } from '../../types';

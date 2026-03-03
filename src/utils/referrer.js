@@ -17,7 +17,7 @@ import {isIP} from 'node:net';
  */
 export function stripURLForUseAsAReferrer(url, originOnly = false) {
 	// 1. If url is null, return no referrer.
-	if (url == null) { // eslint-disable-line no-eq-null, eqeqeq
+	if (url == null) {  
 		return 'no-referrer';
 	}
 

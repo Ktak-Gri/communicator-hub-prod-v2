@@ -1,6 +1,5 @@
 
 import React from 'react';
-import { domainMaster } from './domain-master.ts';
 import { Button } from './ui-shared.tsx';
 
 const FULL_CENTER_DATA = [

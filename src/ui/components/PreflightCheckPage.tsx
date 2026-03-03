@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { WifiOffIcon, ClipboardIcon, CheckCircleIcon, InformationCircleIcon, LoadingIcon, ArrowPathIcon, HomeIcon } from './Icons.tsx';
+import { WifiOffIcon, CheckCircleIcon, InformationCircleIcon, LoadingIcon, ArrowPathIcon, HomeIcon } from './Icons.tsx';
 import { getEffectiveUrl, setSessionUrlOverride } from '../../api.ts';
 
 interface PreflightCheckPageProps {

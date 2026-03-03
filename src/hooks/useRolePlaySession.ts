@@ -1,116 +1,88 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useMicLevel } from "./useMicLevel";
 
-/**
- * ===============================
- * 🔒 GLOBAL CONNECTION LOCK
- * ===============================
- * アプリ全体でAI接続を1本に固定
- */
-const globalSessionRef = {
-  connected: false
-};
+export const useRolePlaySession = () => {
 
-type Options = {
-  enabled: boolean;
-  onConnecting?: () => void;
-  onConnected?: () => void;
-  onAIThinking?: () => void;
-  onAISpeaking?: () => void;
-  onIdle?: () => void;
-};
+  const [status, setStatus] = useState("Idle");
+  const [started, setStarted] = useState(false);
 
-export const useRolePlaySession = ({
-  enabled,
-  onConnecting,
-  onConnected,
-  onAIThinking,
-  onAISpeaking,
-  onIdle
-}: Options) => {
+  const speakingRef = useRef(false);
+  const silenceTimeRef = useRef<number>(0);
 
-  const sessionRef = useRef<any>(null);
+  const mic = useMicLevel({
+    enabled: started
+  });
 
   /**
    * ===============================
-   * CONNECT
+   * STABLE VAD LOOP
    * ===============================
    */
   useEffect(() => {
 
-    if (!enabled) return;
+    if (!started) return;
 
-    /**
-     * 🚨 二重接続完全防止
-     */
-    if (globalSessionRef.connected) {
-      console.log("⚠ Session already connected");
-      return;
-    }
+    const THRESHOLD = 5;
+    const SILENCE_DELAY = 800;
 
-    const connect = async () => {
+    const id = setInterval(() => {
 
-      try {
-        onConnecting?.();
+      const level = mic.level ?? 0;
+      const now = Date.now();
 
-        console.log("🔄 Connecting AI Session...");
+      if (level > THRESHOLD) {
 
-        /**
-         * =====================
-         * TODO:
-         * Gemini Live 接続処理
-         * WebRTC / WS 接続をここへ
-         * =====================
-         */
+        silenceTimeRef.current = now;
 
-        // ---- MOCK CONNECT ----
-        await new Promise(r => setTimeout(r, 800));
+        if (!speakingRef.current) {
+          speakingRef.current = true;
+          setStatus("Listening");
+        }
 
-        sessionRef.current = {};
+      } else {
 
-        globalSessionRef.connected = true;
-
-        console.log("✅ AI Connected");
-
-        onConnected?.();
-
-        /**
-         * ---- MOCK STATE LOOP ----
-         * （後でGeminiイベントへ置換）
-         */
-        setTimeout(() => onAIThinking?.(), 2000);
-        setTimeout(() => onAISpeaking?.(), 3500);
-        setTimeout(() => onIdle?.(), 6000);
-
-      } catch (err) {
-        console.error("Connection failed", err);
-      }
-    };
-
-    connect();
-
-    /**
-     * ===============================
-     * CLEANUP
-     * ===============================
-     */
-    return () => {
-
-      console.log("🧹 Session cleanup");
-
-      if (sessionRef.current) {
-        /**
-         * TODO:
-         * Gemini disconnect
-         */
-        sessionRef.current = null;
+        if (
+          speakingRef.current &&
+          now - silenceTimeRef.current > SILENCE_DELAY
+        ) {
+          speakingRef.current = false;
+          setStatus("Idle");
+        }
       }
 
-      globalSessionRef.connected = false;
-    };
+    }, 120); // ★ 安定監視周期
 
-  }, [enabled]);
+    return () => clearInterval(id);
+
+  }, [started, mic]);
+
+  /**
+   * START
+   */
+  const onStart = async () => {
+
+    if (started) return;
+
+    setStatus("Connecting");
+
+    await new Promise(r => setTimeout(r, 300));
+
+    setStarted(true);
+    setStatus("Idle");
+  };
+
+  /**
+   * STOP
+   */
+  const onStop = () => {
+    setStarted(false);
+    setStatus("Stopped");
+  };
 
   return {
-    connected: globalSessionRef.connected
+    micLevel: mic.level ?? 0,
+    status,
+    onStart,
+    onStop
   };
 };

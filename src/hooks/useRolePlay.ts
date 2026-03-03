@@ -26,7 +26,7 @@ export const useRolePlay = (scenario: Scenario | null, traineeName: string) => {
 
     const cleanup = useCallback(() => {
         if (sessionRef.current) sessionRef.current.close();
-        activeSourcesRef.current.forEach(s => { try { s.stop(); } catch(e) {} });
+        activeSourcesRef.current.forEach(s => { try { s.stop(); } catch(e) {console.error(e)} });
         if (audioContextRef.current) {
             audioContextRef.current.input.close();
             audioContextRef.current.output.close();

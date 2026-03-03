@@ -1,0 +1,5 @@
+{
+  "mounts": [
+    "source=${localWorkspaceFolder}/node_modules,target=/workspace/node_modules,type=volume"
+  ]
+}

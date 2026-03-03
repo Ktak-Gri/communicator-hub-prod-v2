@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { ArrowLeftIcon, PlayIcon, LoadingIcon, InformationCircleIcon, SparklesIcon } from './Icons.tsx';
+import { ArrowLeftIcon, LoadingIcon, InformationCircleIcon, SparklesIcon } from './Icons.tsx';
 import { MasterSetting, Center, TestQuestion } from '../../types.ts';
 import { useTestSession } from '../../hooks/useTestSession.ts';
 import TestResultModal from './TestResultModal.tsx';

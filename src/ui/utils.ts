@@ -6,7 +6,7 @@ export function encode(float32Array: Float32Array): ArrayBuffer {
 
   let offset = 0;
   for (let i = 0; i < float32Array.length; i++, offset += 2) {
-    let s = Math.max(-1, Math.min(1, float32Array[i]));
+    const s = Math.max(-1, Math.min(1, float32Array[i]));
     view.setInt16(offset, s < 0 ? s * 0x8000 : s * 0x7fff, true);
   }
 

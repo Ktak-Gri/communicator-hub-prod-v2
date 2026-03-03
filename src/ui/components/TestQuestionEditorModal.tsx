@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { CloseIcon, LoadingIcon, TrashIcon, CheckCircleIcon } from './Icons.tsx';
+import { CloseIcon, LoadingIcon, TrashIcon } from './Icons.tsx';
 import { MasterSetting, MasterDataItem, TestQuestion } from '../../types.ts';
 
 interface TestQuestionEditorModalProps {
